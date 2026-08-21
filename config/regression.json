@@ -1,0 +1,382 @@
+{
+  "description": "Nhánh B — hồi quy tỷ suất biến động bằng Random Forest.",
+  "dataset": {
+    "path": "data/input/VNM.csv",
+    "label": "VNM",
+    "key_column": "Date",
+    "numeric_columns": [
+      "Open",
+      "High",
+      "Low",
+      "Close",
+      "Volume"
+    ],
+    "series": {
+      "open": "Open",
+      "high": "High",
+      "low": "Low",
+      "close": "Close",
+      "volume": "Volume"
+    }
+  },
+  "preprocess": {
+    "max_forward_fill": 2,
+    "extreme_change_threshold": 0.4,
+    "extreme_change_series": "close"
+  },
+  "features": [
+    {
+      "name": "returns",
+      "indicator": "simple_returns",
+      "inputs": [
+        "close"
+      ],
+      "keep": false
+    },
+    {
+      "name": "sma_5",
+      "indicator": "simple_moving_average",
+      "inputs": [
+        "close"
+      ],
+      "params": {
+        "window": 5
+      },
+      "keep": false
+    },
+    {
+      "name": "sma_20",
+      "indicator": "simple_moving_average",
+      "inputs": [
+        "close"
+      ],
+      "params": {
+        "window": 20
+      },
+      "keep": false
+    },
+    {
+      "name": "close_over_sma5",
+      "indicator": "ratio_to_moving_average",
+      "inputs": [
+        "close"
+      ],
+      "params": {
+        "window": 5
+      }
+    },
+    {
+      "name": "close_over_sma10",
+      "indicator": "ratio_to_moving_average",
+      "inputs": [
+        "close"
+      ],
+      "params": {
+        "window": 10
+      }
+    },
+    {
+      "name": "close_over_sma20",
+      "indicator": "ratio_to_moving_average",
+      "inputs": [
+        "close"
+      ],
+      "params": {
+        "window": 20
+      }
+    },
+    {
+      "name": "close_over_sma50",
+      "indicator": "ratio_to_moving_average",
+      "inputs": [
+        "close"
+      ],
+      "params": {
+        "window": 50
+      }
+    },
+    {
+      "name": "close_over_ema12",
+      "indicator": "ratio_to_moving_average",
+      "inputs": [
+        "close"
+      ],
+      "params": {
+        "window": 12,
+        "use_exponential": true
+      }
+    },
+    {
+      "name": "sma5_above_sma20",
+      "indicator": "crossover_indicator",
+      "inputs": [
+        "sma_5",
+        "sma_20"
+      ]
+    },
+    {
+      "name": "macd",
+      "indicator": "macd",
+      "inputs": [
+        "close"
+      ],
+      "params": {
+        "fast_window": 12,
+        "slow_window": 26,
+        "signal_window": 9
+      },
+      "outputs": {
+        "line": "macd_line",
+        "signal": "macd_signal",
+        "histogram": "macd_raw"
+      },
+      "keep": false
+    },
+    {
+      "name": "macd_histogram",
+      "indicator": "ratio_series",
+      "inputs": [
+        "macd_raw",
+        "close"
+      ]
+    },
+    {
+      "name": "macd_over_signal",
+      "indicator": "crossover_indicator",
+      "inputs": [
+        "macd_line",
+        "macd_signal"
+      ]
+    },
+    {
+      "name": "rsi_7",
+      "indicator": "relative_strength_index",
+      "inputs": [
+        "close"
+      ],
+      "params": {
+        "window": 7
+      }
+    },
+    {
+      "name": "rsi_14",
+      "indicator": "relative_strength_index",
+      "inputs": [
+        "close"
+      ],
+      "params": {
+        "window": 14
+      }
+    },
+    {
+      "name": "roc_5",
+      "indicator": "rate_of_change",
+      "inputs": [
+        "close"
+      ],
+      "params": {
+        "window": 5
+      }
+    },
+    {
+      "name": "roc_10",
+      "indicator": "rate_of_change",
+      "inputs": [
+        "close"
+      ],
+      "params": {
+        "window": 10
+      }
+    },
+    {
+      "name": "stochastic",
+      "indicator": "stochastic_oscillator",
+      "inputs": [
+        "high",
+        "low",
+        "close"
+      ],
+      "params": {
+        "window": 14,
+        "smooth_window": 3
+      },
+      "outputs": {
+        "percent_k": "stochastic_k",
+        "percent_d": "stochastic_d"
+      }
+    },
+    {
+      "name": "bollinger",
+      "indicator": "bollinger_bands",
+      "inputs": [
+        "close"
+      ],
+      "params": {
+        "window": 20,
+        "num_standard_deviations": 2.0
+      },
+      "outputs": {
+        "percent_b": "bollinger_b",
+        "bandwidth": "bollinger_width"
+      }
+    },
+    {
+      "name": "atr_raw",
+      "indicator": "average_true_range",
+      "inputs": [
+        "high",
+        "low",
+        "close"
+      ],
+      "params": {
+        "window": 14
+      },
+      "keep": false
+    },
+    {
+      "name": "atr_over_close",
+      "indicator": "ratio_series",
+      "inputs": [
+        "atr_raw",
+        "close"
+      ]
+    },
+    {
+      "name": "relative_range",
+      "indicator": "relative_range",
+      "inputs": [
+        "high",
+        "low",
+        "close"
+      ]
+    },
+    {
+      "name": "volatility_10",
+      "indicator": "rolling_standard_deviation",
+      "inputs": [
+        "returns"
+      ],
+      "params": {
+        "window": 10
+      }
+    },
+    {
+      "name": "volatility_20",
+      "indicator": "rolling_standard_deviation",
+      "inputs": [
+        "returns"
+      ],
+      "params": {
+        "window": 20
+      }
+    },
+    {
+      "name": "volume_ratio_20",
+      "indicator": "volume_ratio",
+      "inputs": [
+        "volume"
+      ],
+      "params": {
+        "window": 20
+      }
+    },
+    {
+      "name": "obv_raw",
+      "indicator": "on_balance_volume",
+      "inputs": [
+        "close",
+        "volume"
+      ],
+      "keep": false
+    },
+    {
+      "name": "obv_return",
+      "indicator": "simple_returns",
+      "inputs": [
+        "obv_raw"
+      ]
+    },
+    {
+      "name": "return_lag_1",
+      "indicator": "lag_series",
+      "inputs": [
+        "returns"
+      ],
+      "params": {
+        "lag": 1
+      }
+    },
+    {
+      "name": "return_lag_2",
+      "indicator": "lag_series",
+      "inputs": [
+        "returns"
+      ],
+      "params": {
+        "lag": 2
+      }
+    },
+    {
+      "name": "return_lag_3",
+      "indicator": "lag_series",
+      "inputs": [
+        "returns"
+      ],
+      "params": {
+        "lag": 3
+      }
+    },
+    {
+      "name": "return_lag_4",
+      "indicator": "lag_series",
+      "inputs": [
+        "returns"
+      ],
+      "params": {
+        "lag": 4
+      }
+    },
+    {
+      "name": "return_lag_5",
+      "indicator": "lag_series",
+      "inputs": [
+        "returns"
+      ],
+      "params": {
+        "lag": 5
+      }
+    }
+  ],
+  "labeling": {
+    "task": "regression",
+    "source_series": "close",
+    "horizon": 5,
+    "target": "future_return"
+  },
+  "split": {
+    "train_ratio": 0.7,
+    "validation_ratio": 0.15,
+    "gap": 5
+  },
+  "model": {
+    "n_estimators": 300,
+    "criterion": "variance",
+    "max_depth": 6,
+    "min_samples_split": 2,
+    "min_samples_leaf": 30,
+    "max_features": "third",
+    "max_thresholds": 48,
+    "bootstrap": true,
+    "random_state": 42,
+    "verbose": 50
+  },
+  "evaluation": {
+    "walk_forward_folds": 5,
+    "permutation_repeats": 5,
+    "top_features": 15
+  },
+  "output": {
+    "figure_dir": "data/output",
+    "prefix": "VNM_regression"
+  }
+}
