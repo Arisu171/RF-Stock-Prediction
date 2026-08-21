@@ -1,0 +1,21 @@
+# ── Môi trường phát triển ───────────────────────────────────────────
+.vscode/
+.cursor/
+.claude/
+
+# ── Môi trường Python ───────────────────────────────────────────────
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+.env
+
+# ── Dữ liệu và kết quả ──────────────────────────────────────────────
+# Dữ liệu thô không commit: dung lượng lớn, tải lại được từ nguồn.
+data/input/*
+!data/input/.gitkeep
+
+# Đồ thị và bảng kết quả sinh ra khi chạy, không commit.
+data/output/*
+!data/output/.gitkeep
