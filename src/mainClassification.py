@@ -15,6 +15,10 @@
 #   ④  So với các mốc đối chứng — điều kiện cần để kết quả có ý nghĩa
 #   ⑤  Vẽ và lưu đồ thị       — toàn bộ hình đầu ra của nhánh A
 #   ⑥  Mạch chính             — nối ①→⑤ theo đúng thứ tự
+#
+# Cờ --save-model đóng gói mô hình đã huấn luyện kèm CÔNG THỨC ĐẶC
+# TRƯNG và siêu dữ liệu, để mainPredict.py dùng lại mà không phải
+# huấn luyện lại.
 # =====================================================================
 
 import argparse
@@ -25,9 +29,9 @@ import sys
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src'))
 
-from libraries import rfPlot
+from libraries import modelStore, rfPlot
 from libraries.randomForest import RandomForestClassifier
-from pipeline import experiment, labeling
+from pipeline import experiment, labeling, modelBundle
 from utilities import metricsClassification
 
 
@@ -262,6 +266,9 @@ def main():
                         help='Đường dẫn tới file cấu hình JSON.')
     parser.add_argument('--no-figures', action='store_true',
                         help='Bỏ qua bước vẽ và lưu đồ thị.')
+    parser.add_argument('--save-model', metavar='ĐƯỜNG_DẪN',
+                        help='Lưu gói mô hình ra file JSON để dùng lại '
+                             'với mainPredict.py.')
     arguments = parser.parse_args()
 
     config = load_configuration(arguments.config)
@@ -379,6 +386,41 @@ def main():
           f"{metricsClassification.calculate_accuracy(test_targets, tuned_test):.4f} | "
           f"balanced accuracy = "
           f"{metricsClassification.calculate_balanced_accuracy(test_targets, tuned_test):.4f}")
+
+    # ── Lưu gói mô hình ─────────────────────────────────────────────
+    if arguments.save_model:
+        print('\n[8] LƯU GÓI MÔ HÌNH')
+        size = modelStore.count_parameters(model)
+        training_summary = {
+            'data_label':   config['dataset'].get('label', ''),
+            'data_path':    config['dataset']['path'],
+            'num_samples':  len(train_samples),
+            'period':       f"{parts['summary']['train']['key_range'][0]} → "
+                            f"{parts['summary']['train']['key_range'][1]}",
+            'horizon':      label_settings.get('horizon', 1),
+            'parameters_per_sample': size['parameters'] / len(train_samples),
+        }
+        recorded_metrics = {
+            'validation_accuracy': evaluations['validation']['accuracy'],
+            'validation_roc_auc':  evaluations['validation']['roc_auc'],
+            'test_accuracy':       evaluations['test']['accuracy'],
+            'test_roc_auc':        evaluations['test']['roc_auc'],
+            'out_of_bag_error':    model.calculate_out_of_bag_error(),
+        }
+
+        bundle = modelBundle.build_bundle(
+            model, config, dataset['feature_names'],
+            training_summary=training_summary,
+            metrics=recorded_metrics,
+        )
+        bundle['threshold'] = threshold
+
+        path = experiment.resolve_path(arguments.save_model, PROJECT_ROOT)
+        modelBundle.save_bundle(bundle, path)
+        print(f"  Đã lưu: {path}")
+        print(f"  Dung lượng: {os.path.getsize(path) / 1024:.0f} KB | "
+              f"{size['parameters']:,} tham số | "
+              f"ngưỡng quyết định {threshold:.2f}")
 
     # ── Đồ thị ──────────────────────────────────────────────────────
     if not arguments.no_figures:
