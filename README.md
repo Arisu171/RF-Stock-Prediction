@@ -145,12 +145,14 @@ BOT--Machine-Learning/
 ├── docs/
 │   └── predictionGuide.md              [x] Hướng dẫn dùng mô hình để dự đoán
 │
-├── tests/                              # KIỂM THỬ — 140 test, chạy trong ~5 giây
+├── tests/                              # KIỂM THỬ — 174 test, chạy trong ~14 giây
 │   ├── conftest.py                     [x] Đưa src/ vào đường dẫn tìm kiếm
 │   ├── test_indicators.py              [x] Nhân quả, giữ độ dài, đúng công thức
 │   ├── test_metrics.py                 [x] Đối chiếu giá trị tính tay
 │   ├── test_forest.py                  [x] Gini/Entropy, bootstrap ≈ 1/e, tái lập
-│   └── test_modelStore.py              [x] Lưu-nạp giữ nguyên dự đoán, chặn lệch đặc trưng
+│   ├── test_modelStore.py              [x] Lưu-nạp giữ nguyên dự đoán, chặn lệch đặc trưng
+│   ├── test_slidingForest.py           [x] Cây luân chuyển, rừng gốc không bị đổi
+│   └── test_replayEngine.py            [x] KHÔNG NHÌN TRƯỚC, hàng đợi chờ đúng độ trễ
 │
 ├── .gitignore                          [x]
 ├── requirements.txt                    [x]
@@ -626,7 +628,7 @@ sẵn trong siêu dữ liệu nên không mất thông tin.
 python -m pytest tests/ -q
 ```
 
-Bộ kiểm thử gồm **140 test** chạy trong khoảng 5 giây, tập trung vào ba tính chất
+Bộ kiểm thử gồm **174 test** chạy trong khoảng 14 giây, tập trung vào ba tính chất
 mà nếu sai thì mọi con số đánh giá phía sau đều vô nghĩa:
 
 | Nhóm                        | Kiểm tra điều gì                                                                                                                                                     |
