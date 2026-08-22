@@ -25,7 +25,7 @@
 
 > **Kết quả thực nghiệm** — số liệu đầy đủ của cả hai nhánh, đối chiếu với sáu tiêu
 > chí chấp nhận ở [Mục 8.4](#84-tiêu-chí-chấp-nhận): xem
-> [`src/.reports/reportResult.md`](src/.reports/reportResult.md).
+> [`docs/.reports/reportResult.md`](docs/.reports/reportResult.md).
 
 ---
 
@@ -50,7 +50,7 @@ trường hợp `horizon = 1` (phiên kế tiếp). Thực nghiệm cho thấy t
 nhìn 1 phiên yếu hơn hẳn tầm nhìn 5 phiên — nhiễu ngắn hạn lấn át. Vì vậy cấu
 hình mặc định của dự án dùng `horizon = 5`; đổi sang giá trị khác chỉ cần sửa
 một dòng trong `config/*.json`. Số liệu của cả hai tầm nhìn có trong
-[`reportResult.md`](src/.reports/reportResult.md).
+[`reportResult.md`](docs/.reports/reportResult.md).
 
 ### 1.2. Triết lý cài đặt
 
@@ -67,7 +67,7 @@ Dự án cài đặt Random Forest theo **hai tầng**:
 
 > Cơ sở lý thuyết đầy đủ (công thức, chứng minh giảm phương sai, OOB error,
 > feature importance, so sánh RF ↔ GB) được trình bày trong
-> [`src/.reports/reportAlgorithm.md`](src/.reports/reportAlgorithm.md).
+> [`docs/.reports/reportAlgorithm.md`](docs/.reports/reportAlgorithm.md).
 
 ---
 
@@ -140,16 +140,15 @@ BOT--Machine-Learning/
 │   │
 │   ├── mainClassification.py           [x] Chạy nhánh A đầu-cuối, có --save-model
 │   ├── mainRegression.py               [x] Chạy nhánh B đầu-cuối từ file cấu hình
-│   ├── mainPredict.py                  [x] Dự đoán từ gói mô hình, KHÔNG huấn luyện lại
-│   │
-│   └── .reports/
-│       ├── reportAlgorithm.md          [x] Chuyên đề lý thuyết Random Forest
-│       └── reportResult.md             [x] Báo cáo kết quả thực nghiệm
+│   └── mainPredict.py                  [x] Dự đoán từ gói mô hình, KHÔNG huấn luyện lại
 │
 ├── models/                             # Gói mô hình đã huấn luyện — không commit
 │
-├── docs/
-│   └── predictionGuide.md              [x] Hướng dẫn dùng mô hình để dự đoán
+├── docs/                               # TOÀN BỘ TÀI LIỆU
+│   ├── predictionGuide.md              [x] Hướng dẫn dùng mô hình để dự đoán
+│   └── .reports/
+│       ├── reportAlgorithm.md          [x] Chuyên đề lý thuyết Random Forest
+│       └── reportResult.md             [x] Báo cáo kết quả thực nghiệm
 │
 ├── tests/                              # KIỂM THỬ — 203 test, chạy trong ~17 giây
 │   ├── conftest.py                     [x] Đưa src/ vào đường dẫn tìm kiếm
@@ -358,7 +357,7 @@ Kiểm định bằng **`TimeSeriesSplit`** (hoặc walk-forward tự cài), **k
 
 Xem [Mục 8](#8-đánh-giá-mô-hình). Toàn bộ đồ thị lưu về `data/output/` thông qua
 `utilities.plotStyle.save_figure()`; số liệu tổng hợp ghi vào
-`src/.reports/reportResult.md`.
+`docs/.reports/reportResult.md`.
 
 ---
 
@@ -942,7 +941,7 @@ git branch -d feature/technical-indicators
 4. López de Prado, M. (2018). *Advances in Financial Machine Learning*. Wiley
    — Chương 7: Cross-Validation in Finance.
 5. Pedregosa et al. (2011). *Scikit-learn: Machine Learning in Python*. JMLR, 12, 2825–2830.
-6. [`src/.reports/reportAlgorithm.md`](src/.reports/reportAlgorithm.md) — Chuyên đề
+6. [`docs/.reports/reportAlgorithm.md`](docs/.reports/reportAlgorithm.md) — Chuyên đề
    Random Forest của dự án này.
 
 ---
