@@ -567,7 +567,7 @@ pip install -r requirements.txt
 #    (định dạng cột: Date, Open, High, Low, Close, Volume)
 
 # 3. Chạy hai nhánh
-python src/mainClassification.py --config config/classification.json
+python src/mainClassification.py --config config/vnm.json
 python src/mainRegression.py     --config config/regression.json
 ```
 

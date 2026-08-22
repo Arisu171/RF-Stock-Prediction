@@ -177,12 +177,12 @@ BOT--Machine-Learning/
 
 **Quy ước đặt tên:**
 
-| Đối tượng | Quy ước | Ví dụ |
-| --- | --- | --- |
-| Tên file `.py` | camelCase | `randomForest.py`, `metricsClassification.py` |
-| Hàm, biến | snake_case | `calculate_gini_impurity`, `feature_names` |
-| Lớp | PascalCase | `RandomForestClassifier`, `TreeNode` |
-| Hằng số module | UPPER_SNAKE | `IMPURITY_FUNCTIONS`, `FIG_SIZE_COMPACT` |
+| Đối tượng    | Quy ước   | Ví dụ                                           |
+| ---------------- | ----------- | ------------------------------------------------- |
+| Tên file`.py` | camelCase   | `randomForest.py`, `metricsClassification.py` |
+| Hàm, biến      | snake_case  | `calculate_gini_impurity`, `feature_names`    |
+| Lớp             | PascalCase  | `RandomForestClassifier`, `TreeNode`          |
+| Hằng số module | UPPER_SNAKE | `IMPURITY_FUNCTIONS`, `FIG_SIZE_COMPACT`      |
 
 **Quy ước trình bày trong mỗi file** (theo mẫu `utilities/metrics.py`): khối tiêu đề
 `# ===` nêu vai trò module và **chuỗi phụ thuộc ①→⑨** giữa các định nghĩa, sau đó
@@ -405,8 +405,8 @@ Xem [Mục 8](#8-đánh-giá-mô-hình). Toàn bộ đồ thị lưu về `data/
 
 Ba trụ cột của thuật toán được cài trong `src/libraries/`:
 
-| Thành phần                   | Module               | Nội dung                                                                    |
-| ------------------------------ | -------------------- | ---------------------------------------------------------------------------- |
+| Thành phần                   | Module              | Nội dung                                                                    |
+| ------------------------------ | ------------------- | ---------------------------------------------------------------------------- |
 | Cây quyết định             | `decisionTree.py` | CART đệ quy, tìm ngưỡng chia tối ưu, điều kiện dừng               |
 | Tiêu chí phân tách         | `rfMath.py`       | Gini, Entropy, Information Gain (phân loại); variance reduction (hồi quy) |
 | Bagging                        | `randomForest.py` | Bootstrap`n` mẫu có hoàn lại cho mỗi cây                             |
@@ -503,18 +503,18 @@ Mô hình được coi là **"chạy tốt với dữ liệu validate"** khi th�
 Hai script chạy đặt tên file theo mẫu `<prefix>_<tên>.png`, với `prefix` khai báo
 trong `config/*.json`.
 
-| File | Nội dung |
-| --- | --- |
-| `<prefix>_class_distribution.png` | Phân bố lớp sau khi loại quan sát đứng yên |
-| `<prefix>_oob_curve.png` | Lỗi OOB theo số cây `B` |
-| `<prefix>_feature_importance.png` | Top đặc trưng theo MDI **và** permutation importance |
-| `<prefix>_confusion_matrix.png` | Ma trận nhầm lẫn |
-| `<prefix>_roc_curve.png` | Đường ROC kèm giá trị AUC |
-| `<prefix>_threshold_curve.png` | Accuracy / F1 / Balanced accuracy theo ngưỡng quyết định |
-| `<prefix>_walk_forward.png` | Điểm đánh giá qua từng vòng kiểm định tiến dần |
-| `<prefix>_predicted_vs_actual.png` | Tán xạ dự đoán ↔ thực tế (nhánh B) |
-| `<prefix>_series_comparison.png` | Chuỗi thực tế và chuỗi dự đoán theo thời gian (nhánh B) |
-| `<prefix>_residuals.png` | Phân bố sai số (nhánh B) |
+| File                                 | Nội dung                                                         |
+| ------------------------------------ | ----------------------------------------------------------------- |
+| `<prefix>_class_distribution.png`  | Phân bố lớp sau khi loại quan sát đứng yên                |
+| `<prefix>_oob_curve.png`           | Lỗi OOB theo số cây`B`                                       |
+| `<prefix>_feature_importance.png`  | Top đặc trưng theo MDI**và** permutation importance     |
+| `<prefix>_confusion_matrix.png`    | Ma trận nhầm lẫn                                               |
+| `<prefix>_roc_curve.png`           | Đường ROC kèm giá trị AUC                                   |
+| `<prefix>_threshold_curve.png`     | Accuracy / F1 / Balanced accuracy theo ngưỡng quyết định     |
+| `<prefix>_walk_forward.png`        | Điểm đánh giá qua từng vòng kiểm định tiến dần        |
+| `<prefix>_predicted_vs_actual.png` | Tán xạ dự đoán ↔ thực tế (nhánh B)                       |
+| `<prefix>_series_comparison.png`   | Chuỗi thực tế và chuỗi dự đoán theo thời gian (nhánh B) |
+| `<prefix>_residuals.png`           | Phân bố sai số (nhánh B)                                      |
 
 Các notebook lưu thêm `<SYMBOL>_01_price_history.png`, `<SYMBOL>_02_indicators.png`,
 `<SYMBOL>_02_correlation.png` và `<SYMBOL>_05_roc_comparison.png`.
@@ -593,11 +593,11 @@ python src/mainPredict.py --model models/vnm.json --data data/input/VNM.csv --de
 
 **Gói mô hình gồm ba phần dính liền nhau**, không tách rời được:
 
-| Phần | Nội dung | Vì sao bắt buộc |
-| --- | --- | --- |
-| **Công thức** | Bản đặc tả đặc trưng, ánh xạ vai trò → tên cột, tham số làm sạch | Đặc trưng được *sinh ra*, không có sẵn trong dữ liệu. Thiếu phần này, mô hình vẫn chạy nhưng đọc nhầm chỉ báo — sai lặng lẽ, không báo lỗi |
-| **Tham số** | Toàn bộ luật chia và giá trị tại lá của mọi cây | Chính là mô hình |
-| **Siêu dữ liệu** | Nguồn dữ liệu, khoảng thời gian, số mẫu, tỷ lệ tham số/mẫu, chỉ số đạt được, ngưỡng quyết định | Để biết đang cầm mô hình nào và tin được tới đâu |
+| Phần                     | Nội dung                                                                                                             | Vì sao bắt buộc                                                                                                                                                        |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Công thức**     | Bản đặc tả đặc trưng, ánh xạ vai trò → tên cột, tham số làm sạch                                      | Đặc trưng được*sinh ra*, không có sẵn trong dữ liệu. Thiếu phần này, mô hình vẫn chạy nhưng đọc nhầm chỉ báo — sai lặng lẽ, không báo lỗi |
+| **Tham số**        | Toàn bộ luật chia và giá trị tại lá của mọi cây                                                            | Chính là mô hình                                                                                                                                                      |
+| **Siêu dữ liệu** | Nguồn dữ liệu, khoảng thời gian, số mẫu, tỷ lệ tham số/mẫu, chỉ số đạt được, ngưỡng quyết định | Để biết đang cầm mô hình nào và tin được tới đâu                                                                                                           |
 
 Trước khi dự đoán, `mainPredict.py` **đối chiếu tên và thứ tự** của bộ đặc trưng
 vừa dựng với bộ đặc trưng lúc huấn luyện. Chỉ cần hoán vị hai cột là chương trình
@@ -622,25 +622,25 @@ python -m pytest tests/ -q
 Bộ kiểm thử gồm **140 test** chạy trong khoảng 5 giây, tập trung vào ba tính chất
 mà nếu sai thì mọi con số đánh giá phía sau đều vô nghĩa:
 
-| Nhóm | Kiểm tra điều gì |
-| --- | --- |
-| **Tính nhân quả** | Cắt chuỗi tại một vị trí rồi tính lại chỉ báo trên đoạn đầu; giá trị trước điểm cắt phải không đổi. Vi phạm = rò rỉ dữ liệu tương lai. |
-| **Đúng công thức** | Đối chiếu Gini, Entropy, Precision/Recall/F1, ROC-AUC với giá trị tính tay trên ví dụ nhỏ. |
-| **Đúng lý thuyết** | Tỷ lệ mẫu ngoài túi hội tụ về `1/e`; R² của dự đoán bằng trung bình đúng bằng 0; cây hồi quy không ngoại suy được. |
-| **Tái lập được** | Cùng `random_state` cho cùng kết quả; đổi hạt giống cho rừng khác. |
+| Nhóm                        | Kiểm tra điều gì                                                                                                                                                     |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Tính nhân quả**   | Cắt chuỗi tại một vị trí rồi tính lại chỉ báo trên đoạn đầu; giá trị trước điểm cắt phải không đổi. Vi phạm = rò rỉ dữ liệu tương lai. |
+| **Đúng công thức** | Đối chiếu Gini, Entropy, Precision/Recall/F1, ROC-AUC với giá trị tính tay trên ví dụ nhỏ.                                                                    |
+| **Đúng lý thuyết** | Tỷ lệ mẫu ngoài túi hội tụ về`1/e`; R² của dự đoán bằng trung bình đúng bằng 0; cây hồi quy không ngoại suy được.                             |
+| **Tái lập được**  | Cùng`random_state` cho cùng kết quả; đổi hạt giống cho rừng khác.                                                                                            |
 
 ### 9.6. Đổi sang mã cổ phiếu hoặc đề tài khác
 
 Không cần sửa một dòng mã nào — chỉ sửa `config/*.json`:
 
-| Muốn đổi | Sửa khoá |
-| --- | --- |
-| Nguồn dữ liệu | `dataset.path`, `dataset.label` |
-| Tên cột trong file | `dataset.series` (ánh xạ vai trò → tên cột thật) |
-| Bộ chỉ báo và cửa sổ | `features` (danh sách bản đặc tả) |
-| Tầm nhìn dự báo | `labeling.horizon` |
-| Tỷ lệ tách tập | `split` |
-| Siêu tham số mô hình | `model` |
+| Muốn đổi                | Sửa khoá                                                |
+| -------------------------- | --------------------------------------------------------- |
+| Nguồn dữ liệu           | `dataset.path`, `dataset.label`                       |
+| Tên cột trong file       | `dataset.series` (ánh xạ vai trò → tên cột thật) |
+| Bộ chỉ báo và cửa sổ | `features` (danh sách bản đặc tả)                  |
+| Tầm nhìn dự báo        | `labeling.horizon`                                      |
+| Tỷ lệ tách tập         | `split`                                                 |
+| Siêu tham số mô hình   | `model`                                                 |
 
 Một mục trong `features` có dạng:
 
@@ -711,7 +711,7 @@ docs/algorithm-report
 | `test`     | Thêm/sửa kiểm thử                  | `test(metrics): kiểm thử F1 với lớp mất cân bằng`         |
 | `docs`     | Tài liệu                             | `docs(readme): bổ sung quy trình đánh giá`                  |
 | `chore`    | Cấu hình, phụ thuộc                | `chore: thêm scikit-learn vào requirements`                    |
-| `style`    | Định dạng, không đổi logic       | `style: căn lại thụt lề trong rfMath`                       |
+| `style`    | Định dạng, không đổi logic       | `style: căn lại thụt lề trong rfMath`                        |
 
 **Nguyên tắc:**
 
@@ -753,13 +753,16 @@ python -m pytest tests/test_indicators.py
 ```
 
 ## Ảnh hưởng
+
 Số đặc trưng tăng từ 18 → 24. Accuracy trên validate: 0.561 → 0.583.
 
 ## Checklist
+
 - [ ] Code chạy được, không lỗi cú pháp
 - [ ] Không có rò rỉ dữ liệu (chỉ báo tại t chỉ dùng dữ liệu ≤ t)
 - [ ] Đã cập nhật tài liệu liên quan
 - [ ] Không commit dữ liệu / file tạm
+
 ```
 
 **Checklist cho người review:**
@@ -826,27 +829,27 @@ git branch -d feature/technical-indicators
 
 ## 11. LỘ TRÌNH THỰC HIỆN
 
-| Giai đoạn | Công việc | Trạng thái |
-| --- | --- | --- |
-| 0 | Khởi tạo repo, `.gitignore`, `requirements.txt`, môi trường `.venv` | [x] Xong |
-| 0 | Tầng tiện ích: `dataLoader`, `metrics`, `plotStyle` | [x] Xong |
-| 0 | Chuyên đề lý thuyết `reportAlgorithm.md` | [x] Xong |
-| 1 | Thu thập dữ liệu, EDA (`01_eda.ipynb`) | [x] Xong |
-| 2 | `pipeline/timePreprocess.py` — tiền xử lý thời gian | [x] Xong |
-| 3 | `pipeline/technicalIndicators.py` — 20 chỉ báo | [x] Xong |
-| 3 | `pipeline/featureBuilder.py` — thi hành bản đặc tả đặc trưng | [x] Xong |
-| 4 | `pipeline/labeling.py`, `pipeline/splitter.py` | [x] Xong |
-| 5 | `libraries/rfMath.py`, `libraries/decisionTree.py` | [x] Xong |
-| 6 | `libraries/randomForest.py` — bagging, OOB, importance | [x] Xong |
-| 6 | `libraries/gradientBoosting.py` — GB hồi quy và phân loại | [x] Xong |
-| 7 | `utilities/metricsClassification.py` | [x] Xong |
-| 8 | Huấn luyện + tinh chỉnh siêu tham số cho hai nhánh | [x] Xong |
-| 9 | Đối chiếu scikit-learn và Gradient Boosting | [x] Xong |
-| 10 | `libraries/rfPlot.py` + bộ đồ thị đầu ra | [x] Xong |
-| 11 | `reportResult.md` — báo cáo kết quả thực nghiệm | [x] Xong |
-| 12 | Bộ kiểm thử `tests/` — 140 test | [x] Xong |
-| 13 | Lưu và nạp lại mô hình (`modelStore`, `modelBundle`, `mainPredict`) | [x] Xong |
-| 14 | Backtest có tính phí giao dịch | [ ] Ngoài phạm vi |
+| Giai đoạn | Công việc                                                                     | Trạng thái        |
+| ----------- | ------------------------------------------------------------------------------- | ------------------- |
+| 0           | Khởi tạo repo,`.gitignore`, `requirements.txt`, môi trường `.venv`   | [x] Xong            |
+| 0           | Tầng tiện ích:`dataLoader`, `metrics`, `plotStyle`                     | [x] Xong            |
+| 0           | Chuyên đề lý thuyết`reportAlgorithm.md`                                  | [x] Xong            |
+| 1           | Thu thập dữ liệu, EDA (`01_eda.ipynb`)                                     | [x] Xong            |
+| 2           | `pipeline/timePreprocess.py` — tiền xử lý thời gian                      | [x] Xong            |
+| 3           | `pipeline/technicalIndicators.py` — 20 chỉ báo                             | [x] Xong            |
+| 3           | `pipeline/featureBuilder.py` — thi hành bản đặc tả đặc trưng         | [x] Xong            |
+| 4           | `pipeline/labeling.py`, `pipeline/splitter.py`                              | [x] Xong            |
+| 5           | `libraries/rfMath.py`, `libraries/decisionTree.py`                          | [x] Xong            |
+| 6           | `libraries/randomForest.py` — bagging, OOB, importance                       | [x] Xong            |
+| 6           | `libraries/gradientBoosting.py` — GB hồi quy và phân loại                | [x] Xong            |
+| 7           | `utilities/metricsClassification.py`                                          | [x] Xong            |
+| 8           | Huấn luyện + tinh chỉnh siêu tham số cho hai nhánh                        | [x] Xong            |
+| 9           | Đối chiếu scikit-learn và Gradient Boosting                                 | [x] Xong            |
+| 10          | `libraries/rfPlot.py` + bộ đồ thị đầu ra                                | [x] Xong            |
+| 11          | `reportResult.md` — báo cáo kết quả thực nghiệm                        | [x] Xong            |
+| 12          | Bộ kiểm thử`tests/` — 140 test                                            | [x] Xong            |
+| 13          | Lưu và nạp lại mô hình (`modelStore`, `modelBundle`, `mainPredict`) | [x] Xong            |
+| 14          | Backtest có tính phí giao dịch                                              | [ ] Ngoài phạm vi |
 
 ---
 
