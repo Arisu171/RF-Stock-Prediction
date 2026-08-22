@@ -154,6 +154,15 @@ def prepare_features_for_prediction(recipe, table):
         feature_names : list tên đặc trưng theo thứ tự cột
     """
     key_column = recipe['key_column']
+    required = [key_column] + list(recipe['numeric_columns'])
+
+    missing = [name for name in required if name not in table]
+    if missing:
+        raise ValueError(
+            f"Dữ liệu thiếu cột {missing}. Mô hình cần đúng các cột "
+            f"{required} (phân biệt hoa thường). File đang có: "
+            f"{sorted(table)}."
+        )
 
     for name in recipe['numeric_columns']:
         table[name] = [
@@ -247,13 +256,17 @@ def predict_with_bundle(bundle, table, num_rows=None, threshold=None):
         toán phân loại, thêm 'score' là xác suất của lớp dương
     """
     recipe = bundle['recipe']
+    num_input_rows = len(table.get(recipe['key_column'], []))
+
     samples, keys, feature_names = prepare_features_for_prediction(recipe, table)
     verify_feature_compatibility(bundle, feature_names)
 
     if not samples:
         raise ValueError(
-            "Không dựng được mẫu nào — dữ liệu quá ngắn so với cửa sổ "
-            "dài nhất trong công thức đặc trưng."
+            f"Không dựng được mẫu nào từ {num_input_rows} dòng dữ liệu. Cửa "
+            f"sổ chỉ báo dài nhất trong công thức cần nhiều lịch sử hơn — "
+            f"hãy nạp ít nhất 60 dòng (50 dòng là mức tối thiểu tuyệt đối, "
+            f"chỉ cho ra đúng 1 dự đoán)."
         )
 
     if num_rows is not None:
