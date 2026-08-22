@@ -142,6 +142,9 @@ BOT--Machine-Learning/
 │
 ├── models/                             # Gói mô hình đã huấn luyện — không commit
 │
+├── docs/
+│   └── predictionGuide.md              [x] Hướng dẫn dùng mô hình để dự đoán
+│
 ├── tests/                              # KIỂM THỬ — 140 test, chạy trong ~5 giây
 │   ├── conftest.py                     [x] Đưa src/ vào đường dẫn tìm kiếm
 │   ├── test_indicators.py              [x] Nhân quả, giữ độ dài, đúng công thức
@@ -612,6 +615,10 @@ mới là thứ ta cần, nên `modelBundle.prepare_features_for_prediction()` �
 **Điều cố ý không lưu:** tập mẫu huấn luyện và chỉ số out-of-bag. Chúng chiếm phần
 lớn dung lượng mà chỉ phục vụ việc đánh giá lúc huấn luyện; con số OOB đã được ghi
 sẵn trong siêu dữ liệu nên không mất thông tin.
+
+> **Hướng dẫn chi tiết cách dùng mô hình đã huấn luyện** — định dạng dữ liệu,
+> số dòng tối thiểu, cách gọi từ dòng lệnh và từ Python, bảng tra lỗi:
+> [`docs/predictionGuide.md`](docs/predictionGuide.md).
 
 ### 9.5. Chạy kiểm thử
 
