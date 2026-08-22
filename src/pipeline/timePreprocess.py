@@ -23,8 +23,8 @@
 #   ⑧  Tỷ suất biến động log             — biến thể cộng dồn được của ⑦
 #   ⑨  Bắt biến động bất thường          — dùng ⑦ để lọc dữ liệu lỗi
 #   ⑩  Kiểm tra tính liên tục của khoá   — phát hiện đứt quãng trong ①
-#   ⑪  Cắt phần đầu chuỗi                — bỏ vùng chưa đủ lịch sử
-#   ⑫  Tóm tắt thống kê một cột          — bản tin cuối cùng để in ra
+#   ⑪  Tóm tắt thống kê một cột          — bản tin cuối cùng để in ra
+#   ⑫  Ma trận tương quan                — soi quan hệ giữa các cột ở ⑪
 # =====================================================================
 
 import datetime
@@ -353,26 +353,7 @@ def summarize_key_gaps(date_series):
 
 
 # ---------------------------------------------------------------------
-# ⑪ Cắt đầu chuỗi — bỏ vùng mà cửa sổ trượt chưa đủ dữ liệu lịch sử
-# ---------------------------------------------------------------------
-def trim_leading_rows(table, num_rows):
-    """
-    Bỏ num_rows dòng đầu tiên của toàn bộ bảng.
-
-    Parameters:
-        table    : dict bảng
-        num_rows : số dòng cần cắt
-
-    Returns:
-        dict bảng mới
-    """
-    if num_rows < 0:
-        raise ValueError("Số dòng cần cắt không được âm.")
-    return {name: values[num_rows:] for name, values in table.items()}
-
-
-# ---------------------------------------------------------------------
-# ⑫ Tóm tắt một cột — bản tin cuối, dùng để in ra và kiểm tra bằng mắt
+# ⑪ Tóm tắt một cột — bản tin cuối, dùng để in ra và kiểm tra bằng mắt
 # ---------------------------------------------------------------------
 def describe_series(series):
     """
@@ -409,7 +390,7 @@ def describe_series(series):
 
 
 # ---------------------------------------------------------------------
-# ⑬ Ma trận tương quan — phát hiện các cột trùng lặp thông tin với nhau
+# ⑫ Ma trận tương quan — phát hiện các cột trùng lặp thông tin với nhau
 # ---------------------------------------------------------------------
 def calculate_correlation_matrix(table, columns=None):
     """

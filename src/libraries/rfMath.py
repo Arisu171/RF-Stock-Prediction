@@ -12,15 +12,15 @@
 #
 # Thứ tự khai báo bám đúng chuỗi dựng một cây rồi gộp thành rừng:
 #
-#   ①–④  Đổi hình dạng dữ liệu     — cột ↔ mẫu, lấy phần tử theo chỉ số
-#   ⑤–⑧  Thống kê cơ bản           — nền cho mọi độ đo bên dưới
-#   ⑨–⑫  Độ hỗn tạp của MỘT nút    — cần ⑤–⑧
-#   ⑬–⑯  Độ lợi của MỘT phép chia  — cần ⑨–⑫
-#   ⑰–⑳  Tìm ngưỡng chia           — sinh ứng viên rồi quét một lượt
-#   ㉑–㉒  Bootstrap                 — trụ cột ngẫu nhiên thứ NHẤT
-#   ㉓–㉔  Ngẫu nhiên hoá đặc trưng  — trụ cột ngẫu nhiên thứ HAI
-#   ㉕–㉘  Tổng hợp dự đoán của rừng — bước cuối, cần ⑤ và ⑥
-#   ㉙–㉛  Hàm số phụ trợ cho boosting
+#   ①–③  Đổi hình dạng dữ liệu     — cột → mẫu, lấy phần tử theo chỉ số
+#   ④–⑥  Thống kê cơ bản           — nền cho mọi độ đo bên dưới
+#   ⑦–⑨  Độ hỗn tạp của MỘT nút    — Gini, Entropy, bảng tra tiêu chí
+#   ⑩–⑪  Độ lợi của MỘT phép chia  — cần ⑦–⑨
+#   ⑫–⑭  Chia nhánh và quét ngưỡng — bộ tích luỹ cập nhật O(1) mỗi bước
+#   ⑮–⑯  Bootstrap                 — trụ cột ngẫu nhiên thứ NHẤT
+#   ⑰–⑱  Ngẫu nhiên hoá đặc trưng  — trụ cột ngẫu nhiên thứ HAI
+#   ⑲–㉒  Tổng hợp dự đoán của rừng — bước cuối, cần ④ và ⑤
+#   ㉓–㉕  Hàm số phụ trợ cho boosting
 # =====================================================================
 
 import math
@@ -70,23 +70,7 @@ def columns_to_samples(columns):
 
 
 # ---------------------------------------------------------------------
-# ③ Mẫu → cột — hướng ngược lại, cần khi muốn thao tác trên từng đặc trưng
-# ---------------------------------------------------------------------
-def samples_to_columns(samples):
-    """
-    Đổi biểu diễn theo mẫu (dòng) thành biểu diễn theo cột.
-
-    Parameters:
-        samples : list of lists — mỗi phần tử là một mẫu
-
-    Returns:
-        columns : list of lists — mỗi phần tử là một cột đặc trưng
-    """
-    return transpose_matrix(samples)
-
-
-# ---------------------------------------------------------------------
-# ④ Lấy theo chỉ số — mọi phép chia nhánh và bootstrap đều đi qua đây
+# ③ Lấy theo chỉ số — mọi phép chia nhánh và bootstrap đều đi qua đây
 # ---------------------------------------------------------------------
 def select_by_indices(sequence, indices):
     """
@@ -103,7 +87,7 @@ def select_by_indices(sequence, indices):
 
 
 # ---------------------------------------------------------------------
-# ⑤ Đếm tần suất nhãn — nguyên liệu của mọi độ đo hỗn tạp phân loại
+# ④ Đếm tần suất nhãn — nguyên liệu của mọi độ đo hỗn tạp phân loại
 # ---------------------------------------------------------------------
 def count_label_frequencies(labels):
     """
@@ -122,7 +106,7 @@ def count_label_frequencies(labels):
 
 
 # ---------------------------------------------------------------------
-# ⑥ Trung bình — giá trị dự đoán của lá hồi quy, và là nền của ⑦
+# ⑤ Trung bình — giá trị dự đoán của lá hồi quy, và là nền của ⑦
 # ---------------------------------------------------------------------
 def calculate_mean(values):
     """
@@ -136,7 +120,7 @@ def calculate_mean(values):
 
 
 # ---------------------------------------------------------------------
-# ⑦ Phương sai — vừa là thống kê, vừa là ĐỘ HỖN TẠP của nút hồi quy
+# ⑥ Phương sai — vừa là thống kê, vừa là ĐỘ HỖN TẠP của nút hồi quy
 # ---------------------------------------------------------------------
 def calculate_variance(values):
     """
@@ -154,17 +138,7 @@ def calculate_variance(values):
 
 
 # ---------------------------------------------------------------------
-# ⑧ Độ lệch chuẩn — đưa ⑦ về cùng đơn vị với biến gốc, tiện diễn giải
-# ---------------------------------------------------------------------
-def calculate_standard_deviation(values):
-    """
-    Độ lệch chuẩn tổng thể: σ = √Var
-    """
-    return calculate_variance(values) ** 0.5
-
-
-# ---------------------------------------------------------------------
-# ⑨ Gini — độ hỗn tạp mặc định của cây phân loại, rẻ hơn Entropy
+# ⑦ Gini — độ hỗn tạp mặc định của cây phân loại, rẻ hơn Entropy
 # ---------------------------------------------------------------------
 def calculate_gini_impurity(labels):
     """
@@ -189,7 +163,7 @@ def calculate_gini_impurity(labels):
 
 
 # ---------------------------------------------------------------------
-# ⑩ Entropy — cùng vai trò với ⑨ nhưng phạt nặng hơn khi lớp phân tán
+# ⑧ Entropy — cùng vai trò với ⑨ nhưng phạt nặng hơn khi lớp phân tán
 # ---------------------------------------------------------------------
 def calculate_entropy(labels):
     """
@@ -218,31 +192,11 @@ def calculate_entropy(labels):
 
 
 # ---------------------------------------------------------------------
-# ⑪ Tỷ lệ sai — độ hỗn tạp thô nhất, ít nhạy nên chỉ dùng khi cắt tỉa
-# ---------------------------------------------------------------------
-def calculate_misclassification_rate(labels):
-    """
-    Tỷ lệ phân loại sai của nút nếu dự đoán bằng lớp chiếm đa số.
-
-    Error(t) = 1 - max(p_k)
-
-    Ít nhạy hơn Gini và Entropy nên thường chỉ dùng khi cắt tỉa cây.
-    """
-    n = len(labels)
-    if n == 0:
-        return 0.0
-
-    frequencies = count_label_frequencies(labels)
-    return 1.0 - max(frequencies.values()) / n
-
-
-# ---------------------------------------------------------------------
-# ⑫ Bảng tra — gom ⑦, ⑨, ⑩, ⑪ về một cửa để cây chọn bằng tên chuỗi
+# ⑨ Bảng tra — gom ⑦, ⑨, ⑩, ⑪ về một cửa để cây chọn bằng tên chuỗi
 # ---------------------------------------------------------------------
 IMPURITY_FUNCTIONS = {
     'gini':              calculate_gini_impurity,
     'entropy':           calculate_entropy,
-    'misclassification': calculate_misclassification_rate,
     'variance':          calculate_variance,
     'squared_error':     calculate_variance,
 }
@@ -253,8 +207,7 @@ def resolve_impurity_function(criterion):
     Tra hàm độ hỗn tạp theo tên tiêu chí phân tách.
 
     Parameters:
-        criterion : 'gini' | 'entropy' | 'misclassification'
-                    | 'variance' | 'squared_error'
+        criterion : 'gini' | 'entropy' | 'variance' | 'squared_error'
 
     Returns:
         callable(labels) -> float
@@ -268,7 +221,7 @@ def resolve_impurity_function(criterion):
 
 
 # ---------------------------------------------------------------------
-# ⑬ Hỗn tạp sau khi chia — gộp hai nút con lại bằng trọng số số mẫu
+# ⑩ Hỗn tạp sau khi chia — gộp hai nút con lại bằng trọng số số mẫu
 # ---------------------------------------------------------------------
 def calculate_weighted_impurity(left_targets, right_targets, impurity_function):
     """
@@ -295,7 +248,7 @@ def calculate_weighted_impurity(left_targets, right_targets, impurity_function):
 
 
 # ---------------------------------------------------------------------
-# ⑭ Mức giảm hỗn tạp — hiệu của nút cha (⑨–⑫) và nút con (⑬); ĐÍCH tối ưu
+# ⑪ Mức giảm hỗn tạp — hiệu của nút cha (⑨–⑫) và nút con (⑬); ĐÍCH tối ưu
 # ---------------------------------------------------------------------
 def calculate_impurity_decrease(parent_targets, left_targets, right_targets,
                                 impurity_function):
@@ -319,93 +272,7 @@ def calculate_impurity_decrease(parent_targets, left_targets, right_targets,
 
 
 # ---------------------------------------------------------------------
-# ⑮ Thông tin nội tại của phép chia — mẫu số chuẩn hoá cho ⑯
-# ---------------------------------------------------------------------
-def calculate_split_information(left_targets, right_targets):
-    """
-    Thông tin nội tại của phép chia (Split Information) — dùng để chuẩn
-    hoá Information Gain thành Gain Ratio, hạn chế thiên lệch về phía
-    đặc trưng có nhiều giá trị.
-
-    SplitInfo = - Σ (n_i/n) * log₂(n_i/n)
-    """
-    num_left = len(left_targets)
-    num_right = len(right_targets)
-    total = num_left + num_right
-    if total == 0:
-        return 0.0
-
-    split_information = 0.0
-    for count in (num_left, num_right):
-        if count > 0:
-            proportion = count / total
-            split_information -= proportion * math.log2(proportion)
-    return split_information
-
-
-# ---------------------------------------------------------------------
-# ⑯ Gain Ratio — ⑭ chia cho ⑮, dùng khi muốn phạt phép chia quá lệch
-# ---------------------------------------------------------------------
-def calculate_gain_ratio(parent_targets, left_targets, right_targets,
-                         impurity_function):
-    """
-    Tỷ số độ lợi (Gain Ratio) — Information Gain chuẩn hoá theo
-    SplitInfo.
-
-    GainRatio = ΔI / SplitInfo
-
-    Returns:
-        float — 0.0 khi SplitInfo = 0 (một nhánh rỗng)
-    """
-    split_information = calculate_split_information(left_targets, right_targets)
-    if split_information == 0:
-        return 0.0
-
-    impurity_decrease = calculate_impurity_decrease(
-        parent_targets, left_targets, right_targets, impurity_function
-    )
-    return impurity_decrease / split_information
-
-
-# ---------------------------------------------------------------------
-# ⑰ Ngưỡng ứng viên — điểm giữa các giá trị phân biệt, không dính vào mẫu
-# ---------------------------------------------------------------------
-def find_candidate_thresholds(values, max_thresholds=None):
-    """
-    Sinh danh sách ngưỡng ứng viên cho một đặc trưng liên tục: điểm
-    giữa của các cặp giá trị khác nhau liên tiếp sau khi sắp xếp.
-
-    Lấy điểm giữa thay vì lấy chính giá trị quan sát giúp ranh giới
-    quyết định không dính vào một mẫu cụ thể, tổng quát hoá tốt hơn.
-
-    Parameters:
-        values         : list giá trị của một đặc trưng
-        max_thresholds : giới hạn số ngưỡng xét (lấy mẫu đều trên danh
-                         sách đã sắp xếp). None = xét tất cả.
-
-    Returns:
-        list ngưỡng tăng dần — rỗng nếu đặc trưng là hằng số
-    """
-    unique_values = sorted(set(values))
-    if len(unique_values) < 2:
-        return []
-
-    thresholds = [
-        (unique_values[index] + unique_values[index + 1]) / 2.0
-        for index in range(len(unique_values) - 1)
-    ]
-
-    if max_thresholds is not None and len(thresholds) > max_thresholds > 0:
-        step = len(thresholds) / max_thresholds
-        thresholds = [
-            thresholds[int(index * step)] for index in range(max_thresholds)
-        ]
-
-    return thresholds
-
-
-# ---------------------------------------------------------------------
-# ⑱ Chia chỉ số theo ngưỡng — biến một ngưỡng của ⑰ thành hai nhánh
+# ⑫ Chia chỉ số theo ngưỡng — biến một ngưỡng của ⑰ thành hai nhánh
 # ---------------------------------------------------------------------
 def partition_indices_by_threshold(samples, feature_index, threshold):
     """
@@ -432,7 +299,7 @@ def partition_indices_by_threshold(samples, feature_index, threshold):
 
 
 # ---------------------------------------------------------------------
-# ⑲ Bộ tích luỹ nhãn — thay ⑬ khi quét ngưỡng: cập nhật O(1) mỗi bước
+# ⑬ Bộ tích luỹ nhãn — thay ⑬ khi quét ngưỡng: cập nhật O(1) mỗi bước
 # ---------------------------------------------------------------------
 class LabelSplitAccumulator:
     """
@@ -447,11 +314,11 @@ class LabelSplitAccumulator:
 
     Parameters:
         targets   : list nhãn đã sắp xếp theo giá trị đặc trưng
-        criterion : 'gini' | 'entropy' | 'misclassification'
+        criterion : 'gini' | 'entropy'
     """
 
     def __init__(self, targets, criterion='gini'):
-        if criterion not in ('gini', 'entropy', 'misclassification'):
+        if criterion not in ('gini', 'entropy'):
             raise ValueError(
                 f"Tiêu chí '{criterion}' không dùng được cho bài toán phân loại."
             )
@@ -477,14 +344,12 @@ class LabelSplitAccumulator:
             return 0.0
         if self.criterion == 'gini':
             return 1.0 - sum((count / total) ** 2 for count in counts.values())
-        if self.criterion == 'entropy':
-            entropy = 0.0
-            for count in counts.values():
-                proportion = count / total
-                if proportion > 0:
-                    entropy -= proportion * math.log2(proportion)
-            return entropy
-        return 1.0 - max(counts.values()) / total
+        entropy = 0.0
+        for count in counts.values():
+            proportion = count / total
+            if proportion > 0:
+                entropy -= proportion * math.log2(proportion)
+        return entropy
 
     def calculate_weighted_impurity(self):
         """Độ hỗn tạp bình quân có trọng số của hai nhánh hiện tại."""
@@ -497,7 +362,7 @@ class LabelSplitAccumulator:
 
 
 # ---------------------------------------------------------------------
-# ⑳ Bộ tích luỹ giá trị — bản đối ứng của ⑲ cho cây hồi quy
+# ⑭ Bộ tích luỹ giá trị — bản đối ứng của ⑲ cho cây hồi quy
 # ---------------------------------------------------------------------
 class ValueSplitAccumulator:
     """
@@ -555,7 +420,7 @@ class ValueSplitAccumulator:
 
 
 # ---------------------------------------------------------------------
-# ㉑ Bootstrap — trụ cột ngẫu nhiên THỨ NHẤT: mỗi cây một tập mẫu khác nhau
+# ⑮ Bootstrap — trụ cột ngẫu nhiên THỨ NHẤT: mỗi cây một tập mẫu khác nhau
 # ---------------------------------------------------------------------
 def generate_bootstrap_indices(num_samples, random_generator):
     """
@@ -589,7 +454,7 @@ def generate_bootstrap_indices(num_samples, random_generator):
 
 
 # ---------------------------------------------------------------------
-# ㉒ Tỷ lệ OOB lý thuyết — mốc để kiểm chứng cài đặt ㉑ chạy đúng
+# ⑯ Tỷ lệ OOB lý thuyết — mốc để kiểm chứng cài đặt ㉑ chạy đúng
 # ---------------------------------------------------------------------
 def calculate_expected_out_of_bag_ratio(num_samples):
     """
@@ -604,7 +469,7 @@ def calculate_expected_out_of_bag_ratio(num_samples):
 
 
 # ---------------------------------------------------------------------
-# ㉓ Quy đổi max_features — biến quy ước chuỗi thành số nguyên m cụ thể
+# ⑰ Quy đổi max_features — biến quy ước chuỗi thành số nguyên m cụ thể
 # ---------------------------------------------------------------------
 def resolve_max_features(num_features, max_features):
     """
@@ -656,7 +521,7 @@ def resolve_max_features(num_features, max_features):
 
 
 # ---------------------------------------------------------------------
-# ㉔ Chọn đặc trưng — trụ cột ngẫu nhiên THỨ HAI, áp dụng m từ ㉓
+# ⑱ Chọn đặc trưng — trụ cột ngẫu nhiên THỨ HAI, áp dụng m từ ㉓
 # ---------------------------------------------------------------------
 def select_random_feature_indices(num_features, num_selected, random_generator):
     """
@@ -678,7 +543,7 @@ def select_random_feature_indices(num_features, num_selected, random_generator):
 
 
 # ---------------------------------------------------------------------
-# ㉕ Bầu chọn đa số — quy tắc gộp CỨNG của rừng phân loại, dựa trên ⑤
+# ⑲ Bầu chọn đa số — quy tắc gộp CỨNG của rừng phân loại, dựa trên ⑤
 # ---------------------------------------------------------------------
 def majority_vote(labels):
     """
@@ -705,7 +570,7 @@ def majority_vote(labels):
 
 
 # ---------------------------------------------------------------------
-# ㉖ Xác suất nhãn tại lá — nguyên liệu cho cách gộp MỀM ở ㉗
+# ⑳ Xác suất nhãn tại lá — nguyên liệu cho cách gộp MỀM ở ㉗
 # ---------------------------------------------------------------------
 def calculate_label_probabilities(labels, label_space):
     """
@@ -731,7 +596,7 @@ def calculate_label_probabilities(labels, label_space):
 
 
 # ---------------------------------------------------------------------
-# ㉗ Gộp mềm — trung bình các vector ㉖, cho điểm liên tục để vẽ ROC
+# ㉑ Gộp mềm — trung bình các vector ㉖, cho điểm liên tục để vẽ ROC
 # ---------------------------------------------------------------------
 def average_probability_vectors(probability_vectors):
     """
@@ -761,7 +626,7 @@ def average_probability_vectors(probability_vectors):
 
 
 # ---------------------------------------------------------------------
-# ㉘ Chuẩn hoá về phân phối — dùng cho vector tầm quan trọng đặc trưng
+# ㉒ Chuẩn hoá về phân phối — dùng cho vector tầm quan trọng đặc trưng
 # ---------------------------------------------------------------------
 def normalize_to_distribution(values):
     """
@@ -779,7 +644,7 @@ def normalize_to_distribution(values):
 
 
 # ---------------------------------------------------------------------
-# ㉙ Sigmoid — đưa điểm số thô của boosting về xác suất trong (0, 1)
+# ㉓ Sigmoid — đưa điểm số thô của boosting về xác suất trong (0, 1)
 # ---------------------------------------------------------------------
 def sigmoid(value):
     """
@@ -795,7 +660,7 @@ def sigmoid(value):
 
 
 # ---------------------------------------------------------------------
-# ㉚ Logit — hàm ngược của ㉙, dùng để đặt điểm khởi tạo F₀ của boosting
+# ㉔ Logit — hàm ngược của ㉙, dùng để đặt điểm khởi tạo F₀ của boosting
 # ---------------------------------------------------------------------
 def logit(probability, epsilon=1e-15):
     """
@@ -810,7 +675,7 @@ def logit(probability, epsilon=1e-15):
 
 
 # ---------------------------------------------------------------------
-# ㉛ Kẹp giá trị — chặn bước Newton quá lớn khi mẫu số gần 0
+# ㉕ Kẹp giá trị — chặn bước Newton quá lớn khi mẫu số gần 0
 # ---------------------------------------------------------------------
 def clip_value(value, lower_bound, upper_bound):
     """

@@ -12,10 +12,10 @@
 # Thứ tự khai báo bám theo trình tự đọc kết quả của một buổi thực nghiệm:
 #
 #   ①–②   Tầm quan trọng đặc trưng — mô hình đã dựa vào cái gì
-#   ③–⑥   Hội tụ và ổn định        — đã đủ cây chưa, có quá khớp không
-#   ⑦–⑨   Đánh giá phân loại       — ma trận nhầm lẫn, ROC, chọn ngưỡng
-#   ⑩–⑫  Đánh giá hồi quy         — tán xạ, chuỗi thời gian, sai số
-#   ⑬–⑭  Khảo sát dữ liệu         — dùng TRƯỚC khi huấn luyện
+#   ③–④   Hội tụ và ổn định        — đã đủ cây chưa, có ổn định không
+#   ⑤–⑦   Đánh giá phân loại       — ma trận nhầm lẫn, ROC, chọn ngưỡng
+#   ⑧–⑩   Đánh giá hồi quy         — tán xạ, chuỗi thời gian, sai số
+#   ⑪–⑫  Khảo sát dữ liệu         — dùng TRƯỚC khi huấn luyện
 # =====================================================================
 
 import matplotlib.pyplot as plt
@@ -171,76 +171,7 @@ def plot_out_of_bag_curve(tree_counts, error_values,
 
 
 # ---------------------------------------------------------------------
-# ④ Đường mất mát — bản đối ứng của ③ cho boosting
-# ---------------------------------------------------------------------
-def plot_loss_history(loss_values, title='Hàm mất mát theo vòng lặp',
-                      x_label='Vòng lặp', y_label='Mất mát',
-                      filename=None, output_dir=None):
-    """
-    Đường mất mát theo vòng lặp huấn luyện — dùng cho boosting.
-
-    Parameters:
-        loss_values : list giá trị mất mát theo thứ tự vòng lặp
-
-    Returns:
-        matplotlib Figure
-    """
-    fig, ax = plt.subplots(figsize=plotStyle.FIG_SIZE_COMPACT)
-    fig.patch.set_facecolor(plotStyle.FIGURE_BG_COLOR)
-    ax.plot(range(1, len(loss_values) + 1), loss_values,
-            color=plotStyle.LOSS_COLOR, linewidth=2)
-    ax.set_xlabel(x_label)
-    ax.set_ylabel(y_label)
-    ax.set_title(title, fontsize=13, fontweight='bold')
-    plotStyle.apply_axes_style(ax)
-
-    if filename:
-        plotStyle.save_figure(fig, filename, output_dir)
-    return fig
-
-
-# ---------------------------------------------------------------------
-# ⑤ Huấn luyện ↔ kiểm định — khoảng cách hai đường chính là mức quá khớp
-# ---------------------------------------------------------------------
-def plot_hyperparameter_curve(parameter_values, training_scores,
-                              validation_scores,
-                              parameter_label='Giá trị siêu tham số',
-                              score_label='Điểm đánh giá',
-                              title='Đường cong kiểm định siêu tham số',
-                              filename=None, output_dir=None):
-    """
-    Điểm huấn luyện và điểm kiểm định theo một siêu tham số.
-
-    Khoảng cách giữa hai đường chính là mức độ quá khớp: hai đường tách
-    xa nhau nghĩa là mô hình học thuộc dữ liệu huấn luyện.
-
-    Parameters:
-        parameter_values  : list giá trị siêu tham số đã thử
-        training_scores   : list điểm trên tập huấn luyện
-        validation_scores : list điểm trên tập kiểm định
-
-    Returns:
-        matplotlib Figure
-    """
-    fig, ax = plt.subplots(figsize=plotStyle.FIG_SIZE_COMPACT)
-    fig.patch.set_facecolor(plotStyle.FIGURE_BG_COLOR)
-    ax.plot(parameter_values, training_scores, marker='o', markersize=4,
-            color=plotStyle.POINT_COLOR, linewidth=2, label='Huấn luyện')
-    ax.plot(parameter_values, validation_scores, marker='s', markersize=4,
-            color=plotStyle.LINE_COLOR, linewidth=2, label='Kiểm định')
-    ax.set_xlabel(parameter_label)
-    ax.set_ylabel(score_label)
-    ax.set_title(title, fontsize=13, fontweight='bold')
-    ax.legend()
-    plotStyle.apply_axes_style(ax)
-
-    if filename:
-        plotStyle.save_figure(fig, filename, output_dir)
-    return fig
-
-
-# ---------------------------------------------------------------------
-# ⑥ Điểm từng vòng — đo độ ỔN ĐỊNH, thứ mà một con số trung bình che mất
+# ④ Điểm từng vòng — đo độ ỔN ĐỊNH, thứ mà một con số trung bình che mất
 # ---------------------------------------------------------------------
 def plot_fold_scores(fold_labels, score_values, reference_value=None,
                      title='Điểm đánh giá qua từng vòng kiểm định',
@@ -283,7 +214,7 @@ def plot_fold_scores(fold_labels, score_values, reference_value=None,
 
 
 # ---------------------------------------------------------------------
-# ⑦ Ma trận nhầm lẫn — điểm khởi đầu của mọi phân tích lỗi phân loại
+# ⑤ Ma trận nhầm lẫn — điểm khởi đầu của mọi phân tích lỗi phân loại
 # ---------------------------------------------------------------------
 def plot_confusion_matrix(matrix, class_labels,
                           title='Ma trận nhầm lẫn',
@@ -339,7 +270,7 @@ def plot_confusion_matrix(matrix, class_labels,
 
 
 # ---------------------------------------------------------------------
-# ⑧ Đường ROC — đánh giá độc lập với ngưỡng, bổ trợ cho ⑦
+# ⑥ Đường ROC — đánh giá độc lập với ngưỡng, bổ trợ cho ⑦
 # ---------------------------------------------------------------------
 def plot_roc_curve(false_positive_rates, true_positive_rates,
                    area_under_curve=None,
@@ -380,7 +311,7 @@ def plot_roc_curve(false_positive_rates, true_positive_rates,
 
 
 # ---------------------------------------------------------------------
-# ⑨ Chỉ số theo ngưỡng — căn cứ rời bỏ ngưỡng mặc định 0.5
+# ⑦ Chỉ số theo ngưỡng — căn cứ rời bỏ ngưỡng mặc định 0.5
 # ---------------------------------------------------------------------
 def plot_threshold_curve(thresholds, metric_series,
                          title='Chỉ số theo ngưỡng quyết định',
@@ -418,7 +349,7 @@ def plot_threshold_curve(thresholds, metric_series,
 
 
 # ---------------------------------------------------------------------
-# ⑩ Tán xạ dự đoán ↔ thực tế — nhìn thấy ngay giới hạn không ngoại suy
+# ⑧ Tán xạ dự đoán ↔ thực tế — nhìn thấy ngay giới hạn không ngoại suy
 # ---------------------------------------------------------------------
 def plot_predicted_versus_actual(actual_values, predicted_values,
                                  title='Giá trị dự đoán so với thực tế',
@@ -455,7 +386,7 @@ def plot_predicted_versus_actual(actual_values, predicted_values,
 
 
 # ---------------------------------------------------------------------
-# ⑪ Hai chuỗi chồng nhau — cách đọc ⑩ theo trục thời gian
+# ⑨ Hai chuỗi chồng nhau — cách đọc ⑩ theo trục thời gian
 # ---------------------------------------------------------------------
 def plot_series_comparison(actual_values, predicted_values, index_labels=None,
                            title='Chuỗi thực tế và chuỗi dự đoán',
@@ -502,7 +433,7 @@ def plot_series_comparison(actual_values, predicted_values, index_labels=None,
 
 
 # ---------------------------------------------------------------------
-# ⑫ Phân bố sai số — sai số còn cấu trúc nghĩa là mô hình còn bỏ sót
+# ⑩ Phân bố sai số — sai số còn cấu trúc nghĩa là mô hình còn bỏ sót
 # ---------------------------------------------------------------------
 def plot_residuals(actual_values, predicted_values,
                    title='Phân bố sai số',
@@ -550,7 +481,7 @@ def plot_residuals(actual_values, predicted_values,
 
 
 # ---------------------------------------------------------------------
-# ⑬ Ma trận tương quan — dùng ở bước khảo sát, trước khi huấn luyện
+# ⑪ Ma trận tương quan — dùng ở bước khảo sát, trước khi huấn luyện
 # ---------------------------------------------------------------------
 def plot_correlation_matrix(feature_names, correlation_matrix,
                             title='Ma trận tương quan',
@@ -593,7 +524,7 @@ def plot_correlation_matrix(feature_names, correlation_matrix,
 
 
 # ---------------------------------------------------------------------
-# ⑭ Phân bố lớp — kiểm tra mất cân bằng, quyết định có cần cân bằng lại
+# ⑫ Phân bố lớp — kiểm tra mất cân bằng, quyết định có cần cân bằng lại
 # ---------------------------------------------------------------------
 def plot_class_distribution(class_labels, counts,
                             title='Phân bố lớp',
