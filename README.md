@@ -105,6 +105,7 @@ BOT--Machine-Learning/
 │   │   ├── decisionTree.py             [x] Cây quyết định CART (phân loại + hồi quy)
 │   │   ├── randomForest.py             [x] Bagging + random feature + OOB + importance
 │   │   ├── gradientBoosting.py         [x] GB hồi quy và GB phân loại (bước Newton tại lá)
+│   │   ├── modelStore.py               [x] Tuần tự hoá cây và rừng ra JSON
 │   │   └── rfPlot.py                   [x] 14 hàm vẽ, không gắn với đề tài
 │   │
 │   ├── pipeline/                       # TẦNG BÀI TOÁN — chuỗi thời gian và phân tích kỹ thuật
@@ -114,7 +115,8 @@ BOT--Machine-Learning/
 │   │   ├── featureBuilder.py           [x] Thi hành BẢN ĐẶC TẢ đặc trưng từ config
 │   │   ├── labeling.py                 [x] Nhãn xu hướng, mục tiêu hồi quy, cân bằng lớp
 │   │   ├── splitter.py                 [x] Tách theo thời gian, walk-forward
-│   │   └── experiment.py               [x] Điều phối: nạp → sạch → đặc trưng → nhãn → tách
+│   │   ├── experiment.py               [x] Điều phối: nạp → sạch → đặc trưng → nhãn → tách
+│   │   └── modelBundle.py              [x] Gói mô hình = công thức + tham số + siêu dữ liệu
 │   │
 │   ├── utilities/                      # TIỆN ÍCH DÙNG CHUNG
 │   │   ├── __init__.py                 [x]
@@ -130,18 +132,22 @@ BOT--Machine-Learning/
 │   │   ├── 04_train_regress.ipynb      [x] Nhánh B, minh hoạ giới hạn không ngoại suy
 │   │   └── 05_baseline_sklearn.ipynb   [x] Đối chiếu scikit-learn + Gradient Boosting
 │   │
-│   ├── mainClassification.py           [x] Chạy nhánh A đầu-cuối từ file cấu hình
+│   ├── mainClassification.py           [x] Chạy nhánh A đầu-cuối, có --save-model
 │   ├── mainRegression.py               [x] Chạy nhánh B đầu-cuối từ file cấu hình
+│   ├── mainPredict.py                  [x] Dự đoán từ gói mô hình, KHÔNG huấn luyện lại
 │   │
 │   └── .reports/
 │       ├── reportAlgorithm.md          [x] Chuyên đề lý thuyết Random Forest
 │       └── reportResult.md             [x] Báo cáo kết quả thực nghiệm
 │
-├── tests/                              # KIỂM THỬ — 120 test, chạy trong ~6 giây
+├── models/                             # Gói mô hình đã huấn luyện — không commit
+│
+├── tests/                              # KIỂM THỬ — 140 test, chạy trong ~5 giây
 │   ├── conftest.py                     [x] Đưa src/ vào đường dẫn tìm kiếm
 │   ├── test_indicators.py              [x] Nhân quả, giữ độ dài, đúng công thức
 │   ├── test_metrics.py                 [x] Đối chiếu giá trị tính tay
-│   └── test_forest.py                  [x] Gini/Entropy, bootstrap ≈ 1/e, tái lập
+│   ├── test_forest.py                  [x] Gini/Entropy, bootstrap ≈ 1/e, tái lập
+│   └── test_modelStore.py              [x] Lưu-nạp giữ nguyên dự đoán, chặn lệch đặc trưng
 │
 ├── .gitignore                          [x]
 ├── requirements.txt                    [x]
@@ -568,13 +574,52 @@ jupyter notebook src/notebooks/
 
 Kết quả (đồ thị, bảng chỉ số) được ghi vào `data/output/`.
 
-### 9.4. Chạy kiểm thử
+### 9.4. Lưu mô hình và dự đoán lại không cần huấn luyện
+
+Đây là bước biến dự án từ một **thuật toán** thành một **mô hình dùng lại được**.
+
+```powershell
+# Huấn luyện một lần rồi đóng gói ra file
+python src/mainClassification.py --config config/classification.json `
+                                 --save-model models/vnm.json
+
+# Từ đó về sau chỉ nạp và dự đoán — mất dưới một giây
+python src/mainPredict.py --model models/vnm.json `
+                          --data data/input/VNM.csv --rows 10
+
+# Xem thông tin gói mô hình mà không chạy dự đoán
+python src/mainPredict.py --model models/vnm.json --data data/input/VNM.csv --describe
+```
+
+**Gói mô hình gồm ba phần dính liền nhau**, không tách rời được:
+
+| Phần | Nội dung | Vì sao bắt buộc |
+| --- | --- | --- |
+| **Công thức** | Bản đặc tả đặc trưng, ánh xạ vai trò → tên cột, tham số làm sạch | Đặc trưng được *sinh ra*, không có sẵn trong dữ liệu. Thiếu phần này, mô hình vẫn chạy nhưng đọc nhầm chỉ báo — sai lặng lẽ, không báo lỗi |
+| **Tham số** | Toàn bộ luật chia và giá trị tại lá của mọi cây | Chính là mô hình |
+| **Siêu dữ liệu** | Nguồn dữ liệu, khoảng thời gian, số mẫu, tỷ lệ tham số/mẫu, chỉ số đạt được, ngưỡng quyết định | Để biết đang cầm mô hình nào và tin được tới đâu |
+
+Trước khi dự đoán, `mainPredict.py` **đối chiếu tên và thứ tự** của bộ đặc trưng
+vừa dựng với bộ đặc trưng lúc huấn luyện. Chỉ cần hoán vị hai cột là chương trình
+dừng với thông báo rõ ràng, thay vì cho ra một con số vô nghĩa.
+
+**Một khác biệt quan trọng giữa hai đường đi.** Lúc huấn luyện, các quan sát mới
+nhất bị loại vì chưa có nhãn (tương lai chưa xảy ra). Lúc dự đoán thì chính chúng
+mới là thứ ta cần, nên `modelBundle.prepare_features_for_prediction()` đi một
+đường riêng: vẫn dựng đặc trưng và làm sạch y hệt, nhưng **giữ lại toàn bộ phần
+đuôi**. Dòng cuối cùng trong bảng kết quả được đánh dấu `← dự báo`.
+
+**Điều cố ý không lưu:** tập mẫu huấn luyện và chỉ số out-of-bag. Chúng chiếm phần
+lớn dung lượng mà chỉ phục vụ việc đánh giá lúc huấn luyện; con số OOB đã được ghi
+sẵn trong siêu dữ liệu nên không mất thông tin.
+
+### 9.5. Chạy kiểm thử
 
 ```powershell
 python -m pytest tests/ -q
 ```
 
-Bộ kiểm thử gồm **120 test** chạy trong khoảng 6 giây, tập trung vào ba tính chất
+Bộ kiểm thử gồm **140 test** chạy trong khoảng 5 giây, tập trung vào ba tính chất
 mà nếu sai thì mọi con số đánh giá phía sau đều vô nghĩa:
 
 | Nhóm | Kiểm tra điều gì |
@@ -584,7 +629,7 @@ mà nếu sai thì mọi con số đánh giá phía sau đều vô nghĩa:
 | **Đúng lý thuyết** | Tỷ lệ mẫu ngoài túi hội tụ về `1/e`; R² của dự đoán bằng trung bình đúng bằng 0; cây hồi quy không ngoại suy được. |
 | **Tái lập được** | Cùng `random_state` cho cùng kết quả; đổi hạt giống cho rừng khác. |
 
-### 9.5. Đổi sang mã cổ phiếu hoặc đề tài khác
+### 9.6. Đổi sang mã cổ phiếu hoặc đề tài khác
 
 Không cần sửa một dòng mã nào — chỉ sửa `config/*.json`:
 
@@ -799,8 +844,9 @@ git branch -d feature/technical-indicators
 | 9 | Đối chiếu scikit-learn và Gradient Boosting | [x] Xong |
 | 10 | `libraries/rfPlot.py` + bộ đồ thị đầu ra | [x] Xong |
 | 11 | `reportResult.md` — báo cáo kết quả thực nghiệm | [x] Xong |
-| 12 | Bộ kiểm thử `tests/` — 120 test | [x] Xong |
-| 13 | Backtest có tính phí giao dịch | [ ] Ngoài phạm vi |
+| 12 | Bộ kiểm thử `tests/` — 140 test | [x] Xong |
+| 13 | Lưu và nạp lại mô hình (`modelStore`, `modelBundle`, `mainPredict`) | [x] Xong |
+| 14 | Backtest có tính phí giao dịch | [ ] Ngoài phạm vi |
 
 ---
 

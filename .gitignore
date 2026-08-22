@@ -20,3 +20,7 @@ data/input/*
 # Đồ thị và bảng kết quả sinh ra khi chạy, không commit.
 data/output/*
 !data/output/.gitkeep
+
+# Gói mô hình sinh ra khi huấn luyện — tái tạo được bằng --save-model.
+models/*
+!models/.gitkeep
