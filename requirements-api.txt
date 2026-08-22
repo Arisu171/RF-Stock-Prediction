@@ -1,0 +1,18 @@
+# =====================================================================
+# Phụ thuộc để CHẠY máy chủ web
+# =====================================================================
+# Cố ý tách khỏi requirements.txt và giữ thật gọn: ảnh Docker chỉ cần
+# đúng nhóm này. Toàn bộ phần học máy trong src/ là Python thuần nên
+# không góp thêm phụ thuộc nào.
+#
+# Không có ở đây: matplotlib, jupyter, numpy, pandas, scikit-learn.
+# Chúng chỉ phục vụ việc vẽ đồ thị, chạy notebook và đối chiếu baseline
+# lúc phân tích — máy chủ dự đoán không đụng tới.
+# =====================================================================
+
+fastapi>=0.110.0
+uvicorn>=0.27.0
+python-multipart>=0.0.9
+
+# Chỉ dùng khi người dùng tải lên file .xlsx
+openpyxl>=3.1.0
