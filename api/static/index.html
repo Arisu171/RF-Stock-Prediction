@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dự đoán xu hướng giá cổ phiếu — Random Forest</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">RF</span>
+    <div>
+      <h1>Dự đoán xu hướng giá cổ phiếu</h1>
+      <p>Phát lại chuỗi thời gian và chấm điểm dự đoán ngay khi kết quả xuất hiện</p>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button class="tab is-active" data-tab="replay">Phát lại</button>
+    <button class="tab" data-tab="upload">Tải dữ liệu</button>
+  </nav>
+</header>
+
+<!-- ================================================================ -->
+<!-- TAB 1 — PHÁT LẠI                                                 -->
+<!-- ================================================================ -->
+<main id="panel-replay" class="panel is-active">
+
+  <section class="controls">
+    <label class="control">
+      <span>Mô hình</span>
+      <select id="model-select"></select>
+    </label>
+
+    <label class="control">
+      <span>Dữ liệu</span>
+      <select id="dataset-select"></select>
+    </label>
+
+    <label class="control control-narrow">
+      <span>Tốc độ <em id="speed-value">20</em> bước/giây</span>
+      <input id="speed-input" type="range" min="0" max="120" value="20" step="5">
+    </label>
+
+    <label class="control control-check">
+      <input id="adaptive-input" type="checkbox" checked>
+      <span>Chạy đường thích nghi</span>
+    </label>
+
+    <div class="control-actions">
+      <button id="start-button" class="primary">Bắt đầu</button>
+      <button id="stop-button" class="ghost" disabled>Dừng</button>
+    </div>
+  </section>
+
+  <section id="meta-strip" class="meta-strip hidden"></section>
+
+  <section class="board">
+    <div class="chart-card">
+      <div class="chart-head">
+        <h2 id="chart-title">Biểu đồ giá</h2>
+        <div id="current-call" class="current-call"></div>
+      </div>
+      <canvas id="price-canvas" height="380"></canvas>
+      <div class="outcome-legend">
+        <span><i class="swatch hit"></i> dự đoán đúng</span>
+        <span><i class="swatch miss"></i> dự đoán sai</span>
+        <span><i class="swatch pending"></i> đang chờ kiểm chứng</span>
+      </div>
+      <canvas id="outcome-canvas" height="46"></canvas>
+    </div>
+
+    <aside class="stats-card">
+      <h2>Độ chính xác cộng dồn</h2>
+      <p class="stats-note">
+        Chỉ tính trên những dự đoán đã đủ <em id="horizon-note">5</em> phiên
+        để kiểm chứng.
+      </p>
+
+      <div class="gauge" data-line="static">
+        <div class="gauge-head"><span>Mô hình tĩnh</span><b>—</b></div>
+        <div class="gauge-track"><i></i></div>
+      </div>
+
+      <div class="gauge" data-line="adaptive">
+        <div class="gauge-head"><span>Mô hình thích nghi</span><b>—</b></div>
+        <div class="gauge-track"><i></i></div>
+      </div>
+
+      <div class="gauge is-muted" data-line="baseline">
+        <div class="gauge-head"><span>Đoán bừa (lớp đa số)</span><b>—</b></div>
+        <div class="gauge-track"><i></i></div>
+      </div>
+
+      <dl class="facts">
+        <div><dt>Đã chấm</dt><dd id="fact-resolved">0</dd></div>
+        <div><dt>Đã phát</dt><dd id="fact-steps">0</dd></div>
+        <div><dt>Đợt thay máu</dt><dd id="fact-updates">0</dd></div>
+        <div><dt>Số cây</dt><dd id="fact-trees">—</dd></div>
+      </dl>
+
+      <div id="verdict" class="verdict hidden"></div>
+    </aside>
+  </section>
+
+  <section class="caveat">
+    <strong>Đọc kết quả cho đúng.</strong>
+    Dự đoán ứng với biến động sau <em id="caveat-horizon">5</em> phiên, không
+    phải phiên kế tiếp. Giai đoạn dùng để huấn luyện đã được bỏ qua tự động —
+    mọi con số trên màn hình đều tính trên dữ liệu mô hình chưa từng thấy.
+    Kiểm định thống kê trên cả bốn mã cho thấy ưu thế so với đoán bừa
+    <strong>chưa đạt mức có ý nghĩa</strong>. Dùng để học tập, không dùng để
+    ra quyết định đầu tư.
+  </section>
+</main>
+
+<!-- ================================================================ -->
+<!-- TAB 2 — TẢI DỮ LIỆU                                              -->
+<!-- ================================================================ -->
+<main id="panel-upload" class="panel">
+  <section class="upload-card">
+    <h2>Tải dữ liệu của bạn</h2>
+    <p>
+      File sẽ được phát lại y hệt tab chính. Dữ liệu chỉ nằm trong bộ nhớ máy
+      chủ trong phiên xem này và không được ghi ra đĩa.
+    </p>
+
+    <div id="dropzone" class="dropzone">
+      <input id="file-input" type="file" accept=".csv,.json,.xlsx,.xlsm" hidden>
+      <p class="dropzone-main">Kéo file vào đây hoặc bấm để chọn</p>
+      <p class="dropzone-sub">Hỗ trợ .csv, .json, .xlsx — tối đa 8 MB</p>
+    </div>
+
+    <div id="upload-result" class="upload-result hidden"></div>
+
+    <h3>Yêu cầu định dạng</h3>
+    <table class="spec-table">
+      <thead><tr><th>Cột</th><th>Kiểu</th><th>Ghi chú</th></tr></thead>
+      <tbody>
+        <tr><td><code>Date</code></td><td>YYYY-MM-DD</td><td>Ngày giao dịch</td></tr>
+        <tr><td><code>Open</code></td><td>số</td><td>Giá mở cửa</td></tr>
+        <tr><td><code>High</code></td><td>số</td><td>Giá cao nhất phiên</td></tr>
+        <tr><td><code>Low</code></td><td>số</td><td>Giá thấp nhất phiên</td></tr>
+        <tr><td><code>Close</code></td><td>số</td><td>Giá đóng cửa</td></tr>
+        <tr><td><code>Volume</code></td><td>số nguyên</td><td>Khối lượng khớp lệnh</td></tr>
+      </tbody>
+    </table>
+
+    <p class="spec-note">
+      Tên cột <strong>phân biệt hoa thường</strong>. Cần <strong>ít nhất 50
+      dòng</strong> lịch sử vì chỉ báo dài nhất dùng cửa sổ 50 phiên; khuyến
+      nghị từ 60 dòng trở lên. Số dự đoán nhận được bằng <em>số dòng − 49</em>.
+    </p>
+
+    <p class="spec-note">
+      Thử mô hình của một mã trên dữ liệu mã khác là việc <em>nên làm</em> —
+      đó chính là cách kiểm chứng xem tín hiệu có chung giữa các mã hay không.
+    </p>
+  </section>
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
