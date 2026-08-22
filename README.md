@@ -90,6 +90,12 @@ Dự án cài đặt Random Forest theo **hai tầng**:
 ```text
 BOT--Machine-Learning/
 │
+├── api/                                # TẦNG WEB — nằm NGOÀI src/, import một chiều
+│   ├── main.py                         [x] FastAPI: /api/models, /api/stream, /api/upload
+│   ├── streamService.py                [x] Bọc replayEngine thành luồng SSE
+│   ├── uploadService.py                [x] Đọc csv/json/xlsx, ranh giới tin cậy
+│   └── static/                         [x] index.html + app.js + style.css, không cần build
+│
 ├── config/                             # THAM SỐ CỦA THÍ NGHIỆM — dữ liệu, không phải mã
 │   ├── classification.json             [x] Nhánh A: đường dẫn, đặc tả đặc trưng, siêu tham số
 │   └── regression.json                 [x] Nhánh B
@@ -145,14 +151,15 @@ BOT--Machine-Learning/
 ├── docs/
 │   └── predictionGuide.md              [x] Hướng dẫn dùng mô hình để dự đoán
 │
-├── tests/                              # KIỂM THỬ — 174 test, chạy trong ~14 giây
+├── tests/                              # KIỂM THỬ — 203 test, chạy trong ~17 giây
 │   ├── conftest.py                     [x] Đưa src/ vào đường dẫn tìm kiếm
 │   ├── test_indicators.py              [x] Nhân quả, giữ độ dài, đúng công thức
 │   ├── test_metrics.py                 [x] Đối chiếu giá trị tính tay
 │   ├── test_forest.py                  [x] Gini/Entropy, bootstrap ≈ 1/e, tái lập
 │   ├── test_modelStore.py              [x] Lưu-nạp giữ nguyên dự đoán, chặn lệch đặc trưng
 │   ├── test_slidingForest.py           [x] Cây luân chuyển, rừng gốc không bị đổi
-│   └── test_replayEngine.py            [x] KHÔNG NHÌN TRƯỚC, hàng đợi chờ đúng độ trễ
+│   ├── test_replayEngine.py            [x] KHÔNG NHÌN TRƯỚC, hàng đợi chờ đúng độ trễ
+│   └── test_api.py                     [x] Đọc file tải lên, khung SSE, các route
 │
 ├── .gitignore                          [x]
 ├── requirements.txt                    [x]
@@ -622,13 +629,53 @@ sẵn trong siêu dữ liệu nên không mất thông tin.
 > số dòng tối thiểu, cách gọi từ dòng lệnh và từ Python, bảng tra lỗi:
 > [`docs/predictionGuide.md`](docs/predictionGuide.md).
 
-### 9.5. Chạy kiểm thử
+### 9.5. Bảng điều khiển phát lại
+
+```powershell
+python -m uvicorn api.main:application --port 8000
+```
+
+Mở http://127.0.0.1:8000 — chọn mã, bấm **Bắt đầu**.
+
+Màn hình phát lại từng phiên như một luồng trực tiếp, dự đoán tại mỗi bước và
+chấm điểm ngay khi kết quả xuất hiện. **Đây không phải mẹo trình diễn** — nó
+chính là kiểm định tiến dần ở [Mục 8.3](#83-chiến-lược-kiểm-định-walk-forward)
+được trực quan hoá, cùng một phương pháp, chỉ khác ở chỗ kết quả hiện ra dần
+thay vì tổng kết một lần ở cuối.
+
+Ba đường độ chính xác chạy song song:
+
+| Đường | Ý nghĩa |
+| --- | --- |
+| **Mô hình tĩnh** | Rừng đứng yên kể từ lúc huấn luyện |
+| **Mô hình thích nghi** | Cùng rừng đó nhưng tiếp tục thay máu — xem `slidingForest.py` |
+| *Đoán bừa* | Luôn đoán lớp đa số của giai đoạn huấn luyện (để mờ, vì là mốc tham chiếu) |
+
+Đường thứ ba mới là đường khiến hai đường kia có ý nghĩa. Người xem thấy cả ba
+cùng bò lên rồi bám dính nhau quanh 52% — phát hiện trung thực nhất của dự án
+trở nên **nhìn thấy được** thay vì nằm trong một bảng số.
+
+Ba điểm về tính trung thực của màn hình này:
+
+- **Giai đoạn huấn luyện bị bỏ qua tự động.** Engine đọc mốc `training_end`
+  trong gói mô hình và nhảy tới sau đó. Phát lại trên dữ liệu mô hình đã học
+  thuộc sẽ cho accuracy cao giả tạo.
+- **Không nhìn trước.** Ở bước `t` engine chỉ chạm dữ liệu tới `t`. Có test
+  riêng cắt chuỗi rồi chạy lại để bảo đảm điều này.
+- **Chấm điểm đúng độ trễ.** Với tầm nhìn 5 phiên, dự đoán tại `t` nằm trong
+  hàng đợi chờ tới `t+5` mới được kiểm chứng.
+
+Tab **Tải dữ liệu** nhận file `.csv`/`.json`/`.xlsx` của bạn rồi phát lại y hệt.
+Thử mô hình của mã này trên dữ liệu mã khác là việc *nên làm* — đó chính là cách
+tự kiểm chứng xem tín hiệu có chung giữa các mã hay không.
+
+### 9.6. Chạy kiểm thử
 
 ```powershell
 python -m pytest tests/ -q
 ```
 
-Bộ kiểm thử gồm **174 test** chạy trong khoảng 14 giây, tập trung vào ba tính chất
+Bộ kiểm thử gồm **203 test** chạy trong khoảng 17 giây, tập trung vào ba tính chất
 mà nếu sai thì mọi con số đánh giá phía sau đều vô nghĩa:
 
 | Nhóm                        | Kiểm tra điều gì                                                                                                                                                     |
@@ -638,7 +685,7 @@ mà nếu sai thì mọi con số đánh giá phía sau đều vô nghĩa:
 | **Đúng lý thuyết** | Tỷ lệ mẫu ngoài túi hội tụ về`1/e`; R² của dự đoán bằng trung bình đúng bằng 0; cây hồi quy không ngoại suy được.                             |
 | **Tái lập được**  | Cùng`random_state` cho cùng kết quả; đổi hạt giống cho rừng khác.                                                                                            |
 
-### 9.6. Đổi sang mã cổ phiếu hoặc đề tài khác
+### 9.7. Đổi sang mã cổ phiếu hoặc đề tài khác
 
 Không cần sửa một dòng mã nào — chỉ sửa `config/*.json`:
 
