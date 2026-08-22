@@ -22,8 +22,10 @@
 #   ⑥  Tách tập theo thời gian
 #   ⑦  Kiểm định walk-forward — chạy lại ⑥ nhiều lần theo cửa sổ tiến dần
 #   ⑧  Đọc đường dẫn theo gốc dự án
+#   ⑨  Đọc cấu hình có kế thừa — bảo đảm nhiều mã dùng CHUNG tham số
 # =====================================================================
 
+import json
 import os
 
 from . import featureBuilder
@@ -346,3 +348,46 @@ def resolve_path(path, project_root=''):
     if os.path.isabs(path) or not project_root:
         return path
     return os.path.join(project_root, path)
+
+
+# ---------------------------------------------------------------------
+# ⑨ Đọc cấu hình có kế thừa — chống lệch tham số giữa nhiều lượt chạy
+# ---------------------------------------------------------------------
+def load_configuration(path, project_root=''):
+    """
+    Đọc file cấu hình JSON, hỗ trợ kế thừa qua khoá 'extends'.
+
+    VÌ SAO CẦN KẾ THỪA. Khi chạy cùng một phương pháp trên nhiều nguồn
+    dữ liệu, cách làm hiển nhiên là sao chép file cấu hình rồi sửa
+    đường dẫn. Nhưng sao chép phá vỡ đúng thứ ta cần bảo đảm: chỉ cần
+    sửa siêu tham số ở một bản mà quên hai bản kia là ba lượt chạy
+    không còn so sánh được với nhau, mà KHÔNG có dấu hiệu gì báo lỗi.
+
+    Với 'extends', bộ phương pháp và siêu tham số nằm ở đúng MỘT chỗ.
+    File con chỉ khai báo phần khác biệt — thường chỉ là nguồn dữ liệu.
+
+    Hợp nhất ở mức một tầng: khoá nào file con có thì thay thế hoàn
+    toàn khoá đó của file cha.
+
+    Parameters:
+        path         : đường dẫn file cấu hình
+        project_root : thư mục gốc để giải đường dẫn trong 'extends'
+
+    Returns:
+        dict cấu hình đã hợp nhất, không còn khoá 'extends'
+    """
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Không tìm thấy file cấu hình: {path}")
+
+    with open(path, encoding='utf-8') as handle:
+        config = json.load(handle)
+
+    parent_path = config.pop('extends', None)
+    if parent_path is None:
+        return config
+
+    parent = load_configuration(
+        resolve_path(parent_path, project_root), project_root
+    )
+    parent.update(config)
+    return parent

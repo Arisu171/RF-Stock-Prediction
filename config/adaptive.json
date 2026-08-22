@@ -1,0 +1,13 @@
+{
+  "description": "Tham số thay máu của rừng trượt, áp dụng lúc phát lại.",
+
+  "sliding": {
+    "trees_per_update": 15,
+    "window_size": 400,
+    "update_every": 20
+  },
+
+  "replay": {
+    "feature_window": 80
+  }
+}

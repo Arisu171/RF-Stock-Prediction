@@ -1,0 +1,27 @@
+{
+  "extends": "config/base.json",
+  "description": "VCB — Ngân hàng TMCP Ngoại thương Việt Nam. Phương pháp lấy từ base.json.",
+  "dataset": {
+    "path": "data/input/VCB.csv",
+    "label": "VCB",
+    "key_column": "Date",
+    "numeric_columns": [
+      "Open",
+      "High",
+      "Low",
+      "Close",
+      "Volume"
+    ],
+    "series": {
+      "open": "Open",
+      "high": "High",
+      "low": "Low",
+      "close": "Close",
+      "volume": "Volume"
+    }
+  },
+  "output": {
+    "figure_dir": "data/output",
+    "prefix": "VCB_classification"
+  }
+}

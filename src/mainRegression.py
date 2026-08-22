@@ -40,15 +40,19 @@ from utilities import metrics
 # ---------------------------------------------------------------------
 def load_configuration(path):
     """
-    Đọc file cấu hình JSON.
+    Đọc file cấu hình JSON, có hỗ trợ kế thừa qua khoá 'extends'.
+
+    Uỷ quyền cho experiment.load_configuration() để nhiều mã cùng chia
+    sẻ đúng một bộ phương pháp và siêu tham số — xem giải thích ở ⑨ của
+    pipeline/experiment.py.
+
+    Parameters:
+        path : đường dẫn tới file cấu hình
 
     Returns:
-        dict cấu hình
+        dict cấu hình đã hợp nhất
     """
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"Không tìm thấy file cấu hình: {path}")
-    with open(path, encoding='utf-8') as handle:
-        return json.load(handle)
+    return experiment.load_configuration(path, PROJECT_ROOT)
 
 
 # ---------------------------------------------------------------------

@@ -40,18 +40,19 @@ from utilities import metricsClassification
 # ---------------------------------------------------------------------
 def load_configuration(path):
     """
-    Đọc file cấu hình JSON.
+    Đọc file cấu hình JSON, có hỗ trợ kế thừa qua khoá 'extends'.
+
+    Uỷ quyền cho experiment.load_configuration() để nhiều mã cùng chia
+    sẻ đúng một bộ phương pháp và siêu tham số — xem giải thích ở ⑨ của
+    pipeline/experiment.py.
 
     Parameters:
         path : đường dẫn tới file cấu hình
 
     Returns:
-        dict cấu hình
+        dict cấu hình đã hợp nhất
     """
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"Không tìm thấy file cấu hình: {path}")
-    with open(path, encoding='utf-8') as handle:
-        return json.load(handle)
+    return experiment.load_configuration(path, PROJECT_ROOT)
 
 
 # ---------------------------------------------------------------------
@@ -397,6 +398,7 @@ def main():
             'num_samples':  len(train_samples),
             'period':       f"{parts['summary']['train']['key_range'][0]} → "
                             f"{parts['summary']['train']['key_range'][1]}",
+            'training_end': str(parts['summary']['train']['key_range'][1]),
             'horizon':      label_settings.get('horizon', 1),
             'parameters_per_sample': size['parameters'] / len(train_samples),
         }
