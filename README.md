@@ -160,8 +160,13 @@ BOT--Machine-Learning/
 │   ├── test_replayEngine.py            [x] KHÔNG NHÌN TRƯỚC, hàng đợi chờ đúng độ trễ
 │   └── test_api.py                     [x] Đọc file tải lên, khung SSE, các route
 │
+├── Dockerfile                          [x] Ảnh chỉ chứa phần chạy máy chủ
+├── docker-compose.yml                  [x] Gắn models/ và data/ từ máy chủ nhà
+├── .dockerignore                       [x] Cắt ngữ cảnh build 710 MB → 4,7 MB
+│
 ├── .gitignore                          [x]
-├── requirements.txt                    [x]
+├── requirements.txt                    [x] Đầy đủ (phân tích + notebook + test)
+├── requirements-api.txt                [x] CHỈ 4 gói để chạy máy chủ
 └── README.md                           [x] tài liệu này
 ```
 
@@ -668,7 +673,39 @@ Tab **Tải dữ liệu** nhận file `.csv`/`.json`/`.xlsx` của bạn rồi p
 Thử mô hình của mã này trên dữ liệu mã khác là việc *nên làm* — đó chính là cách
 tự kiểm chứng xem tín hiệu có chung giữa các mã hay không.
 
-### 9.6. Chạy kiểm thử
+### 9.6. Đóng gói bằng Docker
+
+```powershell
+# Huấn luyện trước để có gói mô hình (bỏ qua nếu models/ đã có sẵn)
+python src/mainClassification.py --config config/vcb.json --no-figures --save-model models/vcb.json
+
+# Dựng và chạy
+docker compose up --build
+```
+
+Mở http://localhost:8000.
+
+**Ảnh chỉ chứa phần cần để chạy máy chủ.** Nhóm phân tích — `matplotlib`,
+`jupyter`, `numpy`, `pandas`, `scikit-learn` — bị bỏ hẳn ra ngoài, vì lõi học
+máy trong `src/` là Python thuần và không đụng tới chúng.
+
+| | Gói trực tiếp | Ngữ cảnh build |
+| --- | --- | --- |
+| `requirements.txt` (đầy đủ) | 9 | 710 MB |
+| `requirements-api.txt` (chạy máy chủ) | **4** | **4,7 MB** |
+
+Bốn gói đó là `fastapi`, `uvicorn`, `python-multipart` và `openpyxl` — gói cuối
+chỉ dùng khi người dùng tải lên file `.xlsx`.
+
+`docker-compose.yml` **gắn** `models/` và `data/input/` từ máy chủ nhà vào
+container ở chế độ chỉ đọc, thay vì nướng cứng vào ảnh. Nhờ vậy huấn luyện lại
+trên máy là container thấy ngay, không phải build lại.
+
+Nếu build từ một bản sao mới khi `models/` còn rỗng, container **vẫn chạy bình
+thường** — trang chính phục vụ được, healthcheck vẫn xanh, và `/api/models` trả
+về đúng câu hướng dẫn phải huấn luyện trước.
+
+### 9.7. Chạy kiểm thử
 
 ```powershell
 python -m pytest tests/ -q
@@ -684,7 +721,7 @@ mà nếu sai thì mọi con số đánh giá phía sau đều vô nghĩa:
 | **Đúng lý thuyết** | Tỷ lệ mẫu ngoài túi hội tụ về`1/e`; R² của dự đoán bằng trung bình đúng bằng 0; cây hồi quy không ngoại suy được.                             |
 | **Tái lập được**  | Cùng`random_state` cho cùng kết quả; đổi hạt giống cho rừng khác.                                                                                            |
 
-### 9.7. Đổi sang mã cổ phiếu hoặc đề tài khác
+### 9.8. Đổi sang mã cổ phiếu hoặc đề tài khác
 
 Không cần sửa một dòng mã nào — chỉ sửa `config/*.json`:
 

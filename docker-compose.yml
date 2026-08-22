@@ -1,0 +1,27 @@
+# =====================================================================
+# docker-compose — chạy máy chủ kèm mô hình và dữ liệu từ máy chủ nhà
+# =====================================================================
+#   docker compose up --build
+#
+# rồi mở http://localhost:8000
+#
+# Hai thư mục models/ và data/input/ được GẮN VÀO thay vì nướng cứng
+# trong ảnh. Nhờ vậy huấn luyện lại trên máy là container thấy ngay,
+# không phải build lại. Gắn ở chế độ chỉ đọc vì máy chủ không bao giờ
+# cần ghi vào chúng.
+# =====================================================================
+
+services:
+  app:
+    build: .
+    image: rf-stock
+    container_name: rf-stock
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./models:/app/models:ro
+      - ./data/input:/app/data/input:ro
+
+    restart: unless-stopped

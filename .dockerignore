@@ -1,0 +1,39 @@
+# =====================================================================
+# .dockerignore — thứ KHÔNG đi vào ngữ cảnh build
+# =====================================================================
+# Ngữ cảnh build được gửi nguyên khối sang Docker daemon, nên loại bỏ
+# phần thừa vừa làm build nhanh hơn vừa giữ ảnh gọn.
+#
+# Riêng src/notebooks/ đáng loại nhất: 1,5 MB do kết quả được nhúng sẵn
+# trong file, mà máy chủ không cần tới.
+# =====================================================================
+
+# ── Môi trường và bộ nhớ đệm ────────────────────────────────────────
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# ── Lịch sử và cấu hình biên tập ────────────────────────────────────
+.git/
+.gitignore
+.vscode/
+.cursor/
+.claude/
+
+# ── Không cần lúc chạy ──────────────────────────────────────────────
+src/notebooks/
+tests/
+docs/
+*.md
+
+# ── Kết quả sinh ra khi chạy ────────────────────────────────────────
+data/output/
+*.png
+
+# ── Chính các file Docker ───────────────────────────────────────────
+Dockerfile
+.dockerignore
+docker-compose.yml
